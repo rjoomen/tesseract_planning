@@ -89,6 +89,11 @@ std::size_t TrajOptIfoptSolverProfile::getStaticKey()
   return std::type_index(typeid(TrajOptIfoptSolverProfile)).hash_code();
 }
 
+std::vector<std::shared_ptr<trajopt_sqp::SQPCallback>> TrajOptIfoptSolverProfile::createOptimizationCallbacks() const
+{
+  return callbacks;
+}
+
 template <class Archive>
 void TrajOptIfoptSolverProfile::serialize(Archive& ar, const unsigned int /*version*/)
 {

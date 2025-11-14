@@ -128,6 +128,9 @@ public:
   /** @brief Optimization parameters */
   trajopt_sqp::SQPParameters opt_params{};
 
+  /** @brief Optimization callbacks */
+  std::vector<std::shared_ptr<trajopt_sqp::SQPCallback>> callbacks;
+
   virtual std::unique_ptr<trajopt_sqp::TrustRegionSQPSolver> create(bool verbose = false) const = 0;
 
   /**
@@ -135,6 +138,10 @@ public:
    * @return The profile ID used when storing in profile dictionary
    */
   static std::size_t getStaticKey();
+
+protected:
+  /** @brief Optimization callbacks */
+  virtual std::vector<std::shared_ptr<trajopt_sqp::SQPCallback>> createOptimizationCallbacks() const;
 
 private:
   friend class boost::serialization::access;

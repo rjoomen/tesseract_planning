@@ -85,7 +85,7 @@ std::size_t TrajOptSolverProfile::getStaticKey() { return std::type_index(typeid
 
 sco::BasicTrustRegionSQPParameters TrajOptSolverProfile::createOptimizationParameters() const { return opt_params; }
 
-std::vector<sco::Optimizer::Callback> TrajOptSolverProfile::createOptimizationCallbacks() const { return {}; }
+std::vector<sco::Optimizer::Callback> TrajOptSolverProfile::createOptimizationCallbacks() const { return callbacks; }
 
 template <class Archive>
 void TrajOptSolverProfile::serialize(Archive& ar, const unsigned int /*version*/)

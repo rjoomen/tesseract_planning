@@ -138,12 +138,6 @@ std::unique_ptr<trajopt_sqp::TrustRegionSQPSolver> TrajOptIfoptOSQPSolverProfile
   return solver;
 }
 
-std::vector<std::shared_ptr<trajopt_sqp::SQPCallback>>
-TrajOptIfoptOSQPSolverProfile::createOptimizationCallbacks() const
-{
-  return {};
-}
-
 template <class Archive>
 void TrajOptIfoptOSQPSolverProfile::serialize(Archive& ar, const unsigned int /*version*/)
 {

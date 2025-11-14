@@ -75,10 +75,6 @@ public:
 
   std::unique_ptr<trajopt_sqp::TrustRegionSQPSolver> create(bool verbose = false) const override;
 
-protected:
-  /** @brief Optimization callbacks */
-  virtual std::vector<std::shared_ptr<trajopt_sqp::SQPCallback>> createOptimizationCallbacks() const;
-
 private:
   friend class boost::serialization::access;
   friend struct tesseract_common::Serialization;
