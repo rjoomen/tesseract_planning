@@ -6,13 +6,17 @@ The Tesseract Ruckig implementation is based on MoveIt2's code but is missing se
 
 ## Key Findings Summary
 
-1. **Architectural Mismatch:** Tesseract uses Ruckig's `update()` API (designed for real-time control loops) instead of `calculate()` (designed for offline trajectory planning). This prevents implementation of overshoot mitigation.
+1. **API Choice is Valid:** Tesseract uses `update()` - the same API MoveIt2 used from Sept 2021 to March 2023. MoveIt2 only switched to `calculate()` in March 27, 2023 (PR #2051) specifically to enable overshoot mitigation. Tesseract's API choice is NOT wrong.
 
-2. **Missing March 2023 Bug Fixes:** Three critical bugs that were fixed in MoveIt2 are still present in Tesseract.
+2. **Missing March 2023 Bug Fixes:** Two critical bugs (implemented with `update()` API) are missing from Tesseract:
+   - Termination condition fix (Mar 10, 2023)
+   - Duration extension optimization (Mar 16, 2023)
 
-3. **Based on Outdated Code:** Despite being implemented in April 2025, Tesseract's code is based on pre-March 2023 MoveIt2 code.
+3. **Overshoot Mitigation Requires API Change:** The third March 2023 feature (overshoot mitigation, Mar 27, 2023) requires switching from `update()` to `calculate()`. This is optional but beneficial.
 
-4. **No Post-2023 Impact:** Good news - no algorithmic improvements were made to MoveIt2 after March 2023, so Tesseract only needs the 2023 fixes.
+4. **Based on Outdated Code:** Despite being implemented in April 2025, Tesseract's code is based on pre-March 2023 MoveIt2 code.
+
+5. **No Post-2023 Impact:** Good news - no algorithmic improvements were made to MoveIt2 after March 2023, so Tesseract only needs the 2023 fixes.
 
 ---
 
@@ -167,18 +171,35 @@ MoveIt2 clamps each joint individually using `std::clamp()`, which is clearer an
 
 ### 6. **Algorithm Structure: calculate() vs update()**
 
-**Status:** Different API usage - SIGNIFICANT ARCHITECTURAL DIFFERENCE
+**Status:** Different API usage - BUT NOT INTRODUCED BY TESSERACT
+
+**CRITICAL FINDING:** MoveIt2 originally used `update()` and switched to `calculate()` in March 2023 specifically to enable overshoot mitigation!
+
+**MoveIt2 API Evolution:**
+
+| Date | API Used | Event |
+|------|----------|-------|
+| Sept 16, 2021 | `update()` | Original MoveIt2 implementation (PR #571) |
+| Mar 10, 2023 | `update()` | Termination condition fix |
+| Mar 16, 2023 | `update()` | Duration extension optimization (PR #1990) |
+| **Mar 27, 2023** | **`calculate()`** | **Overshoot mitigation (PR #2051) - SWITCHED API** |
+| Dec 12, 2023 | `calculate()` | Sync with MoveIt1 (PR #2596) |
+
+**Why MoveIt2 Switched APIs:**
+PR #2051 (March 27, 2023) changed from `update()` to `calculate()` specifically to enable overshoot detection. The `checkOvershoot()` function requires `Trajectory.at_time()` to sample the trajectory at multiple time points, which is only available from `calculate()`.
 
 **Ruckig API Background:**
 - **`calculate()`** - Offline trajectory generation, returns a complete `Trajectory` object
   - Best for pre-computing trajectories when target is known
   - Provides full trajectory with sampling capability via `at_time()`
   - Doesn't require control cycle in constructor
+  - **Required for overshoot mitigation**
 
 - **`update()`** - Real-time/online trajectory generation
   - Designed for control loops, updates output parameters incrementally
   - Requires control cycle (timestep) specified during initialization
   - Allows dynamic target adjustments mid-trajectory
+  - **Used by MoveIt2 from 2021 until March 2023**
 
 **MoveIt2 Implementation:**
 Uses `calculate()` for offline trajectory smoothing:
@@ -205,29 +226,30 @@ ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
 
 **Impact:**
 
-1. **Architectural Mismatch:**
-   - Tesseract uses the **online/real-time API** for **offline trajectory smoothing**
-   - MoveIt2 correctly uses the **offline API** for offline smoothing
-   - Both work, but `update()` is designed for a different use case
+1. **Tesseract is NOT Wrong - MoveIt2 Used Same API Until March 2023:**
+   - Tesseract uses `update()` - **same as MoveIt2 used from Sept 2021 to March 2023**
+   - MoveIt2 switched to `calculate()` specifically for overshoot mitigation (PR #2051, March 27, 2023)
+   - **The first two March 2023 bug fixes (termination condition, duration extension) were implemented with `update()`**
+   - Tesseract is based on this pre-calculate() version
 
-2. **Overshoot Detection Impossible in Tesseract:**
-   - MoveIt2's `checkOvershoot()` requires `Trajectory.at_time()` to sample the trajectory
-   - Tesseract's `update()` only returns `OutputParameter` (single state, not full trajectory)
+2. **API Not Architecturally Wrong for Basic Smoothing:**
+   - Both `update()` and `calculate()` work for offline trajectory smoothing
+   - MoveIt2 successfully used `update()` for 1.5 years (Sept 2021 - March 2023)
+   - All bug fixes except overshoot mitigation were done with `update()`
+   - The switch to `calculate()` was specifically to enable `checkOvershoot()`, not because `update()` was wrong
+
+3. **Overshoot Detection Requires `calculate()`:**
+   - `checkOvershoot()` requires `Trajectory.at_time()` to sample the trajectory at multiple time points
+   - `update()` only returns `OutputParameter` (single state), not a full `Trajectory` object
    - **Cannot implement overshoot mitigation without switching to `calculate()`**
+   - This is the only feature that requires the API change
 
-3. **Missing Trajectory Introspection:**
-   - `calculate()` provides `get_duration()` method
-   - `calculate()` allows sampling trajectory at any time point
-   - `update()` only gives next state, no trajectory analysis capability
+4. **Tesseract Can Implement First Two Bug Fixes Without API Change:**
+   - Termination condition fix (Mar 10, 2023) - works with `update()`
+   - Duration extension optimization (Mar 16, 2023) - works with `update()`
+   - Only overshoot mitigation (Mar 27, 2023) requires switching to `calculate()`
 
-4. **Performance:**
-   - `update()` may have overhead from control cycle logic designed for real-time use
-   - `calculate()` is optimized for offline computation
-
-**Conclusion:** Tesseract's use of `update()` is functional but architecturally incorrect for offline trajectory smoothing. Switching to `calculate()` would:
-- Enable overshoot mitigation implementation
-- Better match the use case (offline planning vs real-time control)
-- Provide cleaner access to trajectory duration and properties
+**Revised Conclusion:** Tesseract's use of `update()` is **perfectly valid** - it's the same API MoveIt2 used for 1.5 years. The switch to `calculate()` is **optional** and only required if implementing overshoot mitigation. The first two critical bug fixes can be implemented without changing the API.
 
 ---
 
@@ -259,6 +281,44 @@ Explicitly handles the difference between `Result::Working` and `Result::Finishe
 
 **Tesseract:**
 Only accepts `Result::Finished` as success (see issue #2 above).
+
+---
+
+## MoveIt2 API Evolution Timeline
+
+### Complete Timeline of update() → calculate() Switch
+
+**September 16, 2021 (PR #571)** - Original Implementation
+- Used `update()` API
+- Basic trajectory smoothing with duration extension
+- Commit: 4d13e2e3
+
+**March 10, 2023 (PR #1963)** - Termination Condition Fix
+- Still used `update()` API
+- Fixed bug: now accepts both `Result::Working` and `Result::Finished`
+
+**March 16, 2023 (PR #1990)** - Duration Extension Optimization
+- Still used `update()` API
+- Optimized to extend only failed segments, not entire trajectory
+- Proof: Diff shows `ruckig.update(ruckig_input, ruckig_output)`
+
+**March 27, 2023 (PR #2051)** - Overshoot Mitigation **[API CHANGE]**
+- **SWITCHED from `update()` to `calculate()`**
+- Added `checkOvershoot()` function
+- Reason: Needed `Trajectory.at_time()` for overshoot detection
+- Before: `ruckig.update(ruckig_input, ruckig_output)`
+- After: `ruckig.calculate(ruckig_input, ruckig_trajectory)`
+
+**December 12, 2023 (PR #2596)** - Sync with MoveIt1
+- Kept `calculate()` API
+- Refined overshoot detection implementation
+- Maintained compatibility with MoveIt1
+
+### Key Insight
+
+**The first two critical bug fixes (termination condition and duration extension) were implemented with `update()` and work perfectly with that API. Only overshoot mitigation required the switch to `calculate()`.**
+
+This means Tesseract can implement 2 of 3 March 2023 fixes without changing its API!
 
 ---
 
@@ -380,22 +440,33 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 
 ## Recommendations for Tesseract
 
-### High Priority (Bug Fixes)
+### High Priority (Bug Fixes - Can Use Existing `update()` API)
 
-1. **Fix termination condition** - Accept both `Result::Working` and `Result::Finished`
-2. **Add trajectory unwinding** - Call unwind before smoothing to handle angle wrapping
-3. **Optimize duration extension** - Only extend failed segments, not entire trajectory
+These fixes were implemented by MoveIt2 while still using `update()`, so Tesseract can implement them without changing the API:
 
-### Medium Priority (Features)
+1. **Fix termination condition** (Mar 10, 2023) - Accept both `Result::Working` and `Result::Finished`
+   - Implemented in MoveIt2 with `update()` API
+   - No API change required
 
-4. **Switch from `update()` to `calculate()`** - Required for overshoot mitigation and architecturally correct
-   - Current `update()` API is designed for real-time control, not offline smoothing
-   - `calculate()` returns Trajectory object needed for overshoot detection
-   - Must be done before implementing overshoot mitigation
+2. **Optimize duration extension** (Mar 16, 2023) - Only extend failed segments, not entire trajectory
+   - Implemented in MoveIt2 with `update()` API (PR #1990)
+   - No API change required
 
-5. **Add overshoot mitigation** - Implement `checkOvershoot()` with optional parameter
+3. **Add trajectory unwinding** - Call unwind before smoothing to handle angle wrapping
+   - Works with either `update()` or `calculate()`
+   - No API change required
+
+### Medium Priority (Optional Enhancement - Requires API Change)
+
+4. **Switch from `update()` to `calculate()`** - Optional, only needed for overshoot mitigation
+   - Tesseract's use of `update()` is valid - same as MoveIt2 used for 1.5 years
+   - MoveIt2 switched specifically to enable overshoot detection (PR #2051, March 27, 2023)
+   - Only required if implementing item #5
+
+5. **Add overshoot mitigation** (Mar 27, 2023) - Implement `checkOvershoot()` with optional parameter
    - **Prerequisite:** Must switch to `calculate()` first (item #4)
    - Requires `Trajectory.at_time()` method to sample trajectory
+   - This is the ONLY feature that requires the API change
 
 ### Low Priority (Improvements)
 
