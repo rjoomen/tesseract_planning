@@ -223,6 +223,65 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 9. **Mar 2024** - Unified logging migration
 10. **Nov 24, 2024** - Template compatibility fix for checkOvershoot
 
+### Tesseract Ruckig Commits (Chronological)
+
+**Initial Implementation:**
+1. **Apr 19, 2025** (f6cadbb) - Initial Ruckig implementation added by Levi Armstrong
+   - Based on MoveIt2's code with PickNik Robotics BSD 3-Clause license
+   - Authors credited: Jack Center, Wyatt Rees, Andy Zelenak, Stephanie Eng, Levi Armstrong
+   - Added 654 lines across 5 files (header, implementation, tests, CMake)
+   - **Already contained the termination condition bug** (only checks `Result::Finished`)
+
+**Subsequent Updates:**
+2. **May 17, 2025** (9c7252d) - Update time parameterization interface to leverage profiles
+   - Major refactoring to use profile-based configuration
+   - Changed from constructor parameters to `RuckigTrajectorySmoothingCompositeProfile`
+   - Modified compute() interface to use `CompositeInstruction` and `ProfileDictionary`
+   - 42 insertions, 33 deletions in main implementation file
+   - **Termination bug persists** (still only checks `Result::Finished`)
+
+3. **Nov 24, 2025** (a257de5) - Switch to Cereal for serialization (#681)
+   - Added Cereal serialization support for profiles
+   - Added `cereal_serialization.h` and `cereal_serialization.cpp`
+   - Updated profile serialization methods
+
+4. **Nov 29, 2025** (f9b5ce0) - Improve serialization coverage
+   - Added more serialization tests
+
+5. **Nov 29, 2025** (5ceb28f) - Improve time parameterization coverage
+   - Added 12 lines of test coverage
+
+6. **Nov 29, 2025** (d75def8) - Remove getStaticKey from profiles
+   - Cleanup of profile interface
+
+7. **Nov 29, 2025** (39b3e53) - Cleanup doxygen file headers
+   - Documentation improvements
+
+### Key Observations from Tesseract History
+
+**Initial Code Source:**
+- Tesseract's initial implementation (April 2025) was based on MoveIt2's code
+- However, it appears to be based on an **early version** of MoveIt2's implementation (likely pre-March 2023)
+- The code already contained the termination condition bug that MoveIt2 fixed in March 2023
+
+**No Bug Fixes Applied:**
+- **Zero bug fixes** from MoveIt2's 2023 improvements have been backported to Tesseract
+- All Tesseract commits focus on:
+  - Tesseract-specific integration (profiles, serialization)
+  - Test coverage improvements
+  - Code cleanup and documentation
+- **None** address the core algorithmic bugs identified in MoveIt2
+
+**Development Focus:**
+- Tesseract development has focused on integration rather than algorithm improvements
+- Profile-based configuration is a Tesseract-specific enhancement
+- No evidence of tracking or incorporating MoveIt2's subsequent bug fixes
+
+**Timeline Gap:**
+- MoveIt2's critical bug fixes: **March 2023**
+- Tesseract's initial implementation: **April 2025** (2 years later!)
+- Despite the 2-year gap, Tesseract used pre-bugfix code as the base
+
 ---
 
 ## Recommendations for Tesseract
@@ -276,6 +335,51 @@ Both implementations originate from the same PickNik Robotics BSD 3-Clause licen
 
 ---
 
+## Timeline Comparison
+
+```
+MoveIt2 Timeline:
+═══════════════════════════════════════════════════════════════════════════════
+Sept 2021    Initial Ruckig implementation
+    |
+May 2022     Input clamping improvements + Custom limits support
+    |
+Dec 2022     Batch size adjustments
+    |
+Mar 2023     🔴 CRITICAL BUG FIXES 🔴
+    |        - Termination condition fix (Mar 10)
+    |        - Duration extension optimization (Mar 16)
+    |        - Overshoot mitigation (Mar 27)
+    |
+Sept 2023    Code formatting
+    |
+Mar 2024     Unified logging
+    |
+Nov 2024     Template compatibility fix
+    |
+    ▼
+
+Tesseract Timeline:
+═══════════════════════════════════════════════════════════════════════════════
+                                            Apr 2025    Initial implementation
+                                                |       (based on pre-Mar 2023 code!)
+                                                |       ❌ Contains termination bug
+                                                |       ❌ Missing overshoot mitigation
+                                                |       ❌ Inefficient duration extension
+                                                |
+                                            May 2025    Profile-based interface
+                                                |       ❌ Bug still present
+                                                |
+                                            Nov 2025    Serialization updates
+                                                |       ❌ Bug still present
+                                                ▼
+
+Key Issue: Tesseract implemented Ruckig in 2025 but based it on MoveIt2's
+          PRE-2023 code, missing 2 years of critical bug fixes!
+```
+
+---
+
 ## Conclusion
 
 Tesseract's Ruckig implementation is functional but missing approximately 2 years of bug fixes and improvements from MoveIt2. The most critical issues are:
@@ -283,5 +387,17 @@ Tesseract's Ruckig implementation is functional but missing approximately 2 year
 1. **Termination condition bug** - May cause unnecessary duration extensions
 2. **Missing trajectory unwinding** - Can fail with angle wrapping
 3. **Inefficient duration extension** - Slows entire trajectory when only one segment fails
+
+### Critical Finding
+
+Despite being implemented in **April 2025** (2 years after MoveIt2's March 2023 bug fixes), Tesseract's implementation appears to be based on **pre-March 2023** MoveIt2 code. This means:
+
+- ❌ The code was already outdated when it was added to Tesseract
+- ❌ Known bugs were inadvertently introduced into Tesseract
+- ❌ No subsequent updates have addressed these issues
+
+### Recommendation
+
+**High Priority:** Update Tesseract's Ruckig implementation to incorporate MoveIt2's 2023 bug fixes. This is not about adding new features, but fixing known bugs that have proven solutions.
 
 Implementing these fixes would significantly improve Tesseract's trajectory smoothing reliability and performance.
