@@ -212,6 +212,7 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 
 ### Key MoveIt2 Commits (Chronological)
 
+**Core Algorithm Development (2021-2023):**
 1. **Sept 16, 2021** - Original Ruckig implementation
 2. **May 4, 2022** - Input clamping and waypoint reuse improvements
 3. **May 10, 2022** - Custom limits support via unordered_map parameters
@@ -220,8 +221,17 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 6. **Mar 16, 2023** - **[OPTIMIZATION]** Duration extension optimization
 7. **Mar 27, 2023** - **[FEATURE]** Overshoot mitigation
 8. **Sept 2023** - Code formatting updates
-9. **Mar 2024** - Unified logging migration
-10. **Nov 24, 2024** - Template compatibility fix for checkOvershoot
+
+**Maintenance & Code Quality (2024-2025):**
+9. **Mar 15, 2024** - Unified logging names across moveit_core
+10. **Jun 2024** - Added utility functions for joint limits and trajectory messages
+11. **Aug 2024** (PR #2956) - Ruckig plugin for MoveIt Servo (real-time smoothing)
+12. **Nov 6, 2024** - Fix createTrajectoryMessage with improved sampling rate handling
+13. **Nov 29, 2024** - Header refactoring (.h to .hpp extensions)
+14. **Jan 9, 2025** - Added const specifiers to trajectory methods
+15. **Nov 24, 2025** - Template compatibility fix for checkOvershoot
+
+**Note:** After March 2023, all changes to the offline trajectory smoothing algorithm have been maintenance-focused (code quality, logging, const-correctness, template fixes). No algorithmic improvements or bug fixes to the core smoothing logic have been made since March 2023.
 
 ### Tesseract Ruckig Commits (Chronological)
 
@@ -256,6 +266,36 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 
 7. **Nov 29, 2025** (39b3e53) - Cleanup doxygen file headers
    - Documentation improvements
+
+### MoveIt2 Post-2023 Improvements
+
+**Question: Did MoveIt2 have algorithmic improvements after 2023?**
+
+**Answer: No.** After the critical March 2023 bug fixes, all subsequent changes (2024-2025) have been **maintenance and code quality improvements only**:
+
+**2024 Changes:**
+- **Logging improvements** - Unified logger names for better debugging
+- **API additions** - Utility functions for joint limits and trajectory messages
+- **Bug fix** - createTrajectoryMessage sampling rate calculation using std::ceil
+- **Header standardization** - Converted .h to .hpp extensions
+- **Real-time feature** - Added Ruckig plugin for MoveIt Servo (different use case - online smoothing, not offline trajectory planning)
+
+**2025 Changes:**
+- **Code quality** - Added const qualifiers to member functions
+- **Template fix** - Corrected checkOvershoot template parameter (removed unnecessary StandardVector)
+
+**Important:** None of these post-2023 changes affect the core trajectory smoothing algorithm or fix any additional bugs. The last algorithmic improvements were:
+- **March 10, 2023** - Termination condition fix
+- **March 16, 2023** - Duration extension optimization
+- **March 27, 2023** - Overshoot mitigation
+
+**Conclusion:** Tesseract is missing the March 2023 fixes, but hasn't missed any algorithmic improvements from 2024-2025 (because there weren't any). The post-2023 changes are nice-to-haves but not critical for functionality.
+
+**Known Issues:**
+- Issue #3008 (open since Sept 2024) - Ruckig smoothing plugin breaks MoveIt Servo demos
+  - This affects the Servo plugin, not the offline trajectory smoothing that Tesseract uses
+
+---
 
 ### Key Observations from Tesseract History
 
@@ -301,6 +341,10 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 
 6. **Improve logging** - Add more context to error messages
 7. **Code cleanup** - Align with MoveIt2's latest code structure
+8. **Consider template fixes** - Apply Nov 2025 checkOvershoot template parameter fix (if implementing overshoot mitigation)
+9. **Add const qualifiers** - Follow MoveIt2's const-correctness improvements
+
+**Note:** Low priority items are from MoveIt2's 2024-2025 maintenance work - they improve code quality but don't affect functionality.
 
 ---
 
@@ -398,6 +442,12 @@ Despite being implemented in **April 2025** (2 years after MoveIt2's March 2023 
 
 ### Recommendation
 
-**High Priority:** Update Tesseract's Ruckig implementation to incorporate MoveIt2's 2023 bug fixes. This is not about adding new features, but fixing known bugs that have proven solutions.
+**High Priority:** Update Tesseract's Ruckig implementation to incorporate MoveIt2's **March 2023 bug fixes**. This is not about adding new features, but fixing known bugs that have proven solutions.
 
-Implementing these fixes would significantly improve Tesseract's trajectory smoothing reliability and performance.
+**Good News:** Tesseract hasn't missed any post-2023 algorithmic improvements (there haven't been any). All MoveIt2 changes from 2024-2025 are maintenance/code quality improvements that don't affect core functionality.
+
+**Focus Areas:**
+1. **March 2023 fixes are CRITICAL** - These fix actual bugs
+2. **Post-2023 changes are OPTIONAL** - These are nice-to-haves for code quality
+
+Implementing the March 2023 fixes would significantly improve Tesseract's trajectory smoothing reliability and performance.
