@@ -30,9 +30,10 @@
 4. **[TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md](TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md)** - Endpoint velocity analysis
 5. **[MISSING_IMPROVEMENTS_ANALYSIS.md](MISSING_IMPROVEMENTS_ANALYSIS.md)** - Feature gap analysis
 6. **[ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md)** - Analysis of "negative path velocity" bug
-7. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
-8. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
-9. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
+7. **[ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md)** - Analysis of state scaling limitation
+8. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
+9. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
+10. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
 
 ---
 
@@ -258,6 +259,51 @@ Occurs when trajectory returns to or near a previous position (A→B→A pattern
 - 🟡 Masks deeper numerical issues
 
 See [ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md) for complete details.
+
+---
+
+### 7. Known Limitation: Per-Waypoint Scaling (Issue #164)
+
+**Status:** ℹ️ **DOCUMENTED - Fundamental Algorithmic Limitation**
+
+**Issue:** [tesseract-robotics/tesseract_planning#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164)
+
+**The Limitation:**
+TOTG only supports **uniform trajectory-wide scaling**, not **per-waypoint** or **per-state** velocity/acceleration scaling.
+
+**What Works:**
+```cpp
+// Apply same scaling to entire trajectory
+TOTG(waypoints, velocity_scaling=0.5, acceleration_scaling=0.5)
+// All waypoints move at 50% speed
+```
+
+**What Doesn't Work:**
+```cpp
+// Different scaling per waypoint - NOT SUPPORTED
+waypoint[0]: speed = 100%  // Fast
+waypoint[1]: speed = 25%   // Slow ← Cannot do this
+waypoint[2]: speed = 100%  // Fast
+```
+
+**Why It's Impossible:**
+- TOTG computes **globally time-optimal** trajectories
+- Requires maximum velocity throughout (within limits)
+- Post-scaling individual states creates discontinuous trajectories
+- Violates acceleration limits during transitions
+- **This is fundamental to the algorithm**, not a bug
+
+**Comparison with MoveIt:**
+- ⚠️ MoveIt has SAME limitation (by design)
+- ✅ This is expected behavior for TOTG algorithm
+- ✅ Not a missing feature in Tesseract
+
+**Workarounds:**
+1. **Split trajectory** into multiple segments with different scaling
+2. **Use ISP algorithm** instead (more flexible, less optimal)
+3. **Adjust waypoint density** to naturally create speed variations
+
+See [ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md) for complete details and workaround examples.
 
 ---
 
