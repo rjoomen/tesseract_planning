@@ -24,13 +24,15 @@
 
 ## Documents in This Analysis
 
-1. **[TOTG_COMPARISON.md](TOTG_COMPARISON.md)** - Detailed code-level comparison
-2. **[TOTG_SIDE_BY_SIDE_COMPARISON.md](TOTG_SIDE_BY_SIDE_COMPARISON.md)** - Side-by-side code snippets
-3. **[TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md](TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md)** - Endpoint velocity analysis
-4. **[MISSING_IMPROVEMENTS_ANALYSIS.md](MISSING_IMPROVEMENTS_ANALYSIS.md)** - Feature gap analysis
-5. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
-6. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
-7. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
+1. **[COMPARISON_SUMMARY.md](COMPARISON_SUMMARY.md)** - This executive summary (you are here)
+2. **[TOTG_COMPARISON.md](TOTG_COMPARISON.md)** - Detailed code-level comparison
+3. **[TOTG_SIDE_BY_SIDE_COMPARISON.md](TOTG_SIDE_BY_SIDE_COMPARISON.md)** - Side-by-side code snippets
+4. **[TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md](TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md)** - Endpoint velocity analysis
+5. **[MISSING_IMPROVEMENTS_ANALYSIS.md](MISSING_IMPROVEMENTS_ANALYSIS.md)** - Feature gap analysis
+6. **[ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md)** - Analysis of "negative path velocity" bug
+7. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
+8. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
+9. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
 
 ---
 
@@ -148,9 +150,14 @@ All critical MoveIt bug fixes are already incorporated in Tesseract:
 
 **Status:** ⚠️ Partially implemented
 
+**Related:** [Issue #27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) - "Negative path velocity" error
+
 **Current issue:** Only checks parallel (same direction), not antiparallel (opposite direction)
 
-**Risk:** Division by zero when path reverses direction (A→B→A trajectories)
+**Risk:**
+- Division by zero when path reverses direction (A→B→A trajectories)
+- **Causes Issue #27** - "Error while integrating backward: Negative path velocity"
+- Currently masked by dummy joint workaround (lines 156-172)
 
 **Fix:** Add 5 lines of code in `CircularPathSegment` constructor:
 ```cpp
@@ -202,11 +209,63 @@ if (velocity_limits.rows() != acceleration_limits.rows())
 
 ---
 
+### 6. Known Issue: A→B→A Trajectories (Issue #27)
+
+**Status:** ⚠️ Has workaround, not properly fixed
+
+**Issue:** [tesseract-robotics/tesseract_planning#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)
+**MoveIt equivalent:** [moveit/moveit#2495](https://github.com/moveit/moveit/issues/2495) (STILL OPEN since 2021)
+
+**Problem:**
+```
+Error while integrating backward: Negative path velocity
+```
+
+Occurs when trajectory returns to or near a previous position (A→B→A pattern).
+
+**Current Workaround (lines 156-172):**
+```cpp
+// Append a dummy joint with incrementing values (1.0, 2.0, 3.0...)
+// Sets dummy joint limits to infinity
+// Ensures no duplicate points exist
+```
+
+**Root Cause:**
+- A→B→A creates near-antiparallel tangent vectors
+- Circular blend arc calculation produces invalid segments
+- Backward integration fails with negative velocity
+
+**Why Antiparallel Fix Would Solve This:**
+1. Antiparallel vectors would be caught in `CircularPathSegment` constructor
+2. Would create zero-length segment instead of invalid circular arc
+3. No problematic segments → no negative velocity error
+
+**Test Case (currently disabled):**
+```cpp
+// Line 295 in time_optimal_trajectory_generation_tests.cpp
+// TEST(time_optimal_trajectory_generation, test_return_home)
+// Deliberately disabled because it fails without workaround
+```
+
+**Comparison with MoveIt:**
+- ⚠️ MoveIt has same issue
+- ⚠️ MoveIt has NO official workaround
+- ⚠️ Issue opened Jan 2021, still unresolved
+
+**Impact:**
+- 🟡 Common in practice (many tasks return to home)
+- 🟡 Workaround adds overhead (extra dimension to every trajectory)
+- 🟡 Masks deeper numerical issues
+
+See [ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md) for complete details.
+
+---
+
 ## Recommendations
 
 ### Immediate Actions (Quick Wins)
 
-1. **Add antiparallel vector check** - 5 minutes, prevents potential crashes
+1. **Add antiparallel vector check** - 5 minutes, prevents crashes AND fixes Issue #27
 2. **Add strict limit validation** - 1 minute, fail fast on invalid config
 3. **Verify minimum limit handling** - 10 minutes investigation
 
@@ -287,9 +346,11 @@ traj2: B → C (starts at B)
 
 1. ✅ Keep Tesseract's superior numerical stability
 2. ✅ Keep Tesseract's safe endpoint handling
-3. ⚠️ Add the 3 small improvements listed above
-4. ⚠️ Evaluate if torque limits are needed for your application
-5. ❌ Don't port MoveIt2 code wholesale (would be a downgrade)
+3. ⚠️ Add the 3 small improvements listed above (especially antiparallel fix)
+4. ⚠️ Antiparallel fix would **solve Issue #27** (negative path velocity)
+5. ⚠️ Could then **remove dummy joint workaround** (cleaner code)
+6. ⚠️ Evaluate if torque limits are needed for your application
+7. ❌ Don't port MoveIt2 code wholesale (would be a downgrade)
 
 ### For MoveIt2 Users Migrating to Tesseract
 
