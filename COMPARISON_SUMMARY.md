@@ -30,10 +30,11 @@
 4. **[TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md](TESSERACT_ENDPOINT_BEHAVIOR_ANALYSIS.md)** - Endpoint velocity analysis
 5. **[MISSING_IMPROVEMENTS_ANALYSIS.md](MISSING_IMPROVEMENTS_ANALYSIS.md)** - Feature gap analysis
 6. **[ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md)** - Analysis of "negative path velocity" bug
-7. **[ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md)** - Analysis of state scaling limitation
-8. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
-9. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
-10. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
+7. **[ISSUE_118_ANALYSIS.md](ISSUE_118_ANALYSIS.md)** - Analysis of unused scaling factors (appears fixed)
+8. **[ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md)** - Analysis of state scaling limitation
+9. **[moveit2_totg_key_sections.cpp](moveit2_totg_key_sections.cpp)** - Extracted MoveIt2 code
+10. **[moveit2_totg_header.hpp](moveit2_totg_header.hpp)** - MoveIt2 header file
+11. **[endpoint_velocity_test.cpp](endpoint_velocity_test.cpp)** - Test program for verification
 
 ---
 
@@ -304,6 +305,57 @@ waypoint[2]: speed = 100%  // Fast
 3. **Adjust waypoint density** to naturally create speed variations
 
 See [ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md) for complete details and workaround examples.
+
+---
+
+### 8. Potentially Fixed: Unused Scaling Factors (Issue #118)
+
+**Status:** ✅ **APPEARS FIXED - Awaiting Verification**
+
+**Issue:** [tesseract-robotics/tesseract_planning#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118)
+**Opened:** September 22, 2021
+**GitHub Status:** Still open (but likely resolved)
+
+**Original Problem:**
+The `max_velocity_scaling_factor` and `max_acceleration_scaling_factor` parameters were present in the profile but **not actually used** when computing trajectories.
+
+**Current Code Status (Lines 168-172):**
+```cpp
+// Scaling factors ARE being applied!
+max_velocity_dummy_appended << (velocity_limits.col(1) * ci_profile->max_velocity_scaling_factor),
+    std::numeric_limits<double>::max();
+
+max_acceleration_dummy_appended << (acceleration_limits.col(1) * ci_profile->max_acceleration_scaling_factor),
+    std::numeric_limits<double>::max();
+
+// Scaled limits passed to TOTG
+totg::Trajectory parameterized(path, max_velocity_dummy_appended, max_acceleration_dummy_appended, 0.001);
+```
+
+**Evidence of Fix:**
+- ✅ Scaling factors multiply velocity/acceleration limits (lines 168, 171)
+- ✅ Scaled limits passed to TOTG algorithm (line 176)
+- ✅ Validation ensures factors in valid range [0.0, 1.0] (lines 97-102)
+- ✅ Implementation matches MoveIt2's approach
+
+**Why Issue May Still Be Open:**
+- ⚠️ Fix was implemented but issue not closed on GitHub
+- ⚠️ No explicit PR/commit documenting the fix
+- ⚠️ Needs verification testing to confirm behavior
+
+**Recommendation:**
+1. Test with various scaling factors (0.25, 0.5, 0.75, 1.0)
+2. Verify trajectory duration scales appropriately
+3. Verify limits are respected
+4. If tests pass → Close issue #118 on GitHub
+
+**Comparison with MoveIt2:**
+- ✅ MoveIt2 has same implementation pattern
+- ✅ Tesseract behavior matches expected MoveIt2 behavior
+
+**Priority:** 🟢 **LOW** - Code appears correct, just needs verification and issue closure
+
+See [ISSUE_118_ANALYSIS.md](ISSUE_118_ANALYSIS.md) for complete details and test recommendations.
 
 ---
 
