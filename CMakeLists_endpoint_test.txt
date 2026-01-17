@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.15)
+project(endpoint_velocity_test)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(tesseract_common REQUIRED)
+find_package(tesseract_environment REQUIRED)
+find_package(tesseract_command_language REQUIRED)
+find_package(tesseract_time_parameterization REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+add_executable(endpoint_velocity_test endpoint_velocity_test.cpp)
+
+target_link_libraries(endpoint_velocity_test
+  tesseract::tesseract_common
+  tesseract::tesseract_environment
+  tesseract::tesseract_command_language
+  tesseract::tesseract_time_parameterization_totg
+  Eigen3::Eigen
+)
