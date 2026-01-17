@@ -4,6 +4,18 @@
 
 The Tesseract Ruckig implementation is based on MoveIt2's code but is missing several critical bug fixes and improvements that were added to MoveIt2 between 2022-2023. This document outlines the key differences and missing features.
 
+## Key Findings Summary
+
+1. **Architectural Mismatch:** Tesseract uses Ruckig's `update()` API (designed for real-time control loops) instead of `calculate()` (designed for offline trajectory planning). This prevents implementation of overshoot mitigation.
+
+2. **Missing March 2023 Bug Fixes:** Three critical bugs that were fixed in MoveIt2 are still present in Tesseract.
+
+3. **Based on Outdated Code:** Despite being implemented in April 2025, Tesseract's code is based on pre-March 2023 MoveIt2 code.
+
+4. **No Post-2023 Impact:** Good news - no algorithmic improvements were made to MoveIt2 after March 2023, so Tesseract only needs the 2023 fixes.
+
+---
+
 ## Missing Features and Bug Fixes in Tesseract
 
 ### 1. **Overshoot Mitigation** (Added to MoveIt2: March 27, 2023)
@@ -155,25 +167,67 @@ MoveIt2 clamps each joint individually using `std::clamp()`, which is clearer an
 
 ### 6. **Algorithm Structure: calculate() vs update()**
 
-**Status:** Different API usage
+**Status:** Different API usage - SIGNIFICANT ARCHITECTURAL DIFFERENCE
 
-**MoveIt2:**
-Uses `ruckig.calculate()` which computes the entire trajectory segment at once:
+**Ruckig API Background:**
+- **`calculate()`** - Offline trajectory generation, returns a complete `Trajectory` object
+  - Best for pre-computing trajectories when target is known
+  - Provides full trajectory with sampling capability via `at_time()`
+  - Doesn't require control cycle in constructor
+
+- **`update()`** - Real-time/online trajectory generation
+  - Designed for control loops, updates output parameters incrementally
+  - Requires control cycle (timestep) specified during initialization
+  - Allows dynamic target adjustments mid-trajectory
+
+**MoveIt2 Implementation:**
+Uses `calculate()` for offline trajectory smoothing:
 ```cpp
+ruckig::Ruckig<ruckig::DynamicDOFs> ruckig(num_dof, trajectory.getAverageSegmentDuration());
 ruckig_result = ruckig.calculate(ruckig_input, ruckig_output);
+
+// Then uses the trajectory object:
+trajectory.setWayPointDurationFromPrevious(waypoint_idx + 1, ruckig_output.get_duration());
+checkOvershoot(ruckig_output, ...);  // Samples trajectory at multiple time points
 ```
 
-**Tesseract:**
-Uses `ruckig.update()` which is more iterative:
+**Tesseract Implementation:**
+Uses `update()` with explicit timestep:
 ```cpp
+double timestep = original_duration_from_previous.sum() / static_cast<double>(num_waypoints - 1);
+auto ruckig_ptr = std::make_unique<ruckig::Ruckig<ruckig::DynamicDOFs>>(dof, timestep);
 ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
+// ruckig_output is just OutputParameter with new_position/velocity/acceleration
+// No Trajectory object, cannot sample at arbitrary time points
 ```
+
+**Note:** Tesseract's code has an `#ifdef WITH_ONLINE_CLIENT` block (lines 59-123) that uses `calculate()`, but this is **not compiled** (flag is never defined in CMakeLists.txt). The actual production code uses `update()`.
 
 **Impact:**
-- `calculate()` returns a `Trajectory` object with full trajectory information
-- `update()` is typically used for online/streaming mode
-- MoveIt2's approach is more appropriate for offline trajectory smoothing
-- Both work, but `calculate()` provides better trajectory introspection
+
+1. **Architectural Mismatch:**
+   - Tesseract uses the **online/real-time API** for **offline trajectory smoothing**
+   - MoveIt2 correctly uses the **offline API** for offline smoothing
+   - Both work, but `update()` is designed for a different use case
+
+2. **Overshoot Detection Impossible in Tesseract:**
+   - MoveIt2's `checkOvershoot()` requires `Trajectory.at_time()` to sample the trajectory
+   - Tesseract's `update()` only returns `OutputParameter` (single state, not full trajectory)
+   - **Cannot implement overshoot mitigation without switching to `calculate()`**
+
+3. **Missing Trajectory Introspection:**
+   - `calculate()` provides `get_duration()` method
+   - `calculate()` allows sampling trajectory at any time point
+   - `update()` only gives next state, no trajectory analysis capability
+
+4. **Performance:**
+   - `update()` may have overhead from control cycle logic designed for real-time use
+   - `calculate()` is optimized for offline computation
+
+**Conclusion:** Tesseract's use of `update()` is functional but architecturally incorrect for offline trajectory smoothing. Switching to `calculate()` would:
+- Enable overshoot mitigation implementation
+- Better match the use case (offline planning vs real-time control)
+- Provide cleaner access to trajectory duration and properties
 
 ---
 
@@ -334,8 +388,14 @@ Only accepts `Result::Finished` as success (see issue #2 above).
 
 ### Medium Priority (Features)
 
-4. **Add overshoot mitigation** - Implement `checkOvershoot()` with optional parameter
-5. **Review algorithm API** - Consider switching from `update()` to `calculate()`
+4. **Switch from `update()` to `calculate()`** - Required for overshoot mitigation and architecturally correct
+   - Current `update()` API is designed for real-time control, not offline smoothing
+   - `calculate()` returns Trajectory object needed for overshoot detection
+   - Must be done before implementing overshoot mitigation
+
+5. **Add overshoot mitigation** - Implement `checkOvershoot()` with optional parameter
+   - **Prerequisite:** Must switch to `calculate()` first (item #4)
+   - Requires `Trajectory.at_time()` method to sample trajectory
 
 ### Low Priority (Improvements)
 
