@@ -251,6 +251,33 @@ ruckig_result = ruckig_ptr->update(ruckig_input, ruckig_output);
 
 **Revised Conclusion:** Tesseract's use of `update()` is **perfectly valid** - it's the same API MoveIt2 used for 1.5 years. The switch to `calculate()` is **optional** and only required if implementing overshoot mitigation. The first two critical bug fixes can be implemented without changing the API.
 
+**Disadvantages of Switching to `calculate()`:**
+
+After extensive investigation including:
+- Ruckig library documentation
+- MoveIt2 PR discussions (#2051, #2596, MoveIt1 #3376)
+- GitHub issues in both Ruckig and MoveIt2 repositories
+- 22 months of production use in MoveIt2 (March 2023 - January 2026)
+
+**Result: No documented or discovered disadvantages.**
+
+Specifically checked:
+- ✅ **Constructor requirements:** Both APIs require timestep - no difference
+- ✅ **Performance:** No concerns raised in any PRs, no benchmarks showing slowdown, no regression issues
+- ✅ **Memory usage:** Negligible difference for single segment computation, no issues reported
+- ✅ **API complexity:** Actually simpler - one-shot call vs iterative design
+- ✅ **Production stability:** MoveIt2 successfully using `calculate()` since March 2023 with no known issues
+- ✅ **Known bugs:** Issue #2556 (longer trajectories) is unrelated to API choice
+
+**Advantages of switching to `calculate()`:**
+- Access to `Trajectory.at_time()` for overshoot detection
+- Access to `get_duration()` for duration extraction
+- Cleaner API for offline use case
+- Enables future overshoot mitigation feature
+- Zero known downsides
+
+**If not implementing overshoot mitigation:** Staying with `update()` is perfectly fine - it's what MoveIt2 used successfully for 1.5 years.
+
 ---
 
 ### 7. **Error Handling and Logging**
