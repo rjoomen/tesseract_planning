@@ -112,21 +112,30 @@ TrajOptIfoptDefaultCompositeProfile::create(const tesseract_common::ManipulatorI
   if (smooth_velocities)
   {
     Eigen::VectorXd target = Eigen::VectorXd::Zero(vars.front()->size());
-    auto constraint = createJointVelocityConstraint(target, vars, velocity_coeff);
+    Eigen::VectorXd coeff = velocity_coeff;
+    if (coeff.size() == 0)
+      coeff = Eigen::VectorXd::Constant(vars.front()->size(), 5.0);
+    auto constraint = createJointVelocityConstraint(target, vars, coeff);
     term_infos.squared_costs.push_back(constraint);
   }
 
   if (smooth_accelerations)
   {
     Eigen::VectorXd target = Eigen::VectorXd::Zero(vars.front()->size());
-    auto constraint = createJointAccelerationConstraint(target, vars, acceleration_coeff);
+    Eigen::VectorXd coeff = acceleration_coeff;
+    if (coeff.size() == 0)
+      coeff = Eigen::VectorXd::Constant(vars.front()->size(), 1.0);
+    auto constraint = createJointAccelerationConstraint(target, vars, coeff);
     term_infos.squared_costs.push_back(constraint);
   }
 
   if (smooth_jerks)
   {
     Eigen::VectorXd target = Eigen::VectorXd::Zero(vars.front()->size());
-    auto constraint = createJointJerkConstraint(target, vars, jerk_coeff);
+    Eigen::VectorXd coeff = jerk_coeff;
+    if (coeff.size() == 0)
+      coeff = Eigen::VectorXd::Constant(vars.front()->size(), 1.0);
+    auto constraint = createJointJerkConstraint(target, vars, coeff);
     term_infos.squared_costs.push_back(constraint);
   }
 

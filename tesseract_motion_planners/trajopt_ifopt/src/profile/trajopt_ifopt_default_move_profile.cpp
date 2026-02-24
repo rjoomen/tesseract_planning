@@ -243,8 +243,20 @@ TrajOptIfoptDefaultMoveProfile::create(const MoveInstructionPoly& move_instructi
 
     // Create var set
     info.node = std::make_unique<trajopt_ifopt::Node>("Node_" + std::to_string(index));
+    std::vector<trajopt_ifopt::Bounds> effective_bounds;
+    if (info.fixed)
+    {
+      // Fix the variable at the waypoint position by setting bounds = [position, position].
+      // This matches TrajOpt SCO behavior where fixed_timesteps locks variables.
+      for (Eigen::Index j = 0; j < jwp.getPosition().size(); ++j)
+        effective_bounds.emplace_back(jwp.getPosition()(j), jwp.getPosition()(j));
+    }
+    else
+    {
+      effective_bounds = bounds;
+    }
     std::shared_ptr<const trajopt_ifopt::Var> var =
-        info.node->addVar("position", joint_names, jwp.getPosition(), bounds);
+        info.node->addVar("position", joint_names, jwp.getPosition(), effective_bounds);
 
     if (jwp.isConstrained())
     {
