@@ -258,16 +258,12 @@ void serialize(Archive& ar, WaitInstruction& obj)
 namespace cereal
 {
 template <class Archive>
-struct specialize<Archive,
-                  tesseract::command_language::JointWaypoint,
-                  cereal::specialization::non_member_load_save>
+struct specialize<Archive, tesseract::command_language::JointWaypoint, cereal::specialization::non_member_load_save>
 {
 };
 
 template <class Archive>
-struct specialize<Archive,
-                  tesseract::command_language::StateWaypoint,
-                  cereal::specialization::non_member_load_save>
+struct specialize<Archive, tesseract::command_language::StateWaypoint, cereal::specialization::non_member_load_save>
 {
 };
 }  // namespace cereal
