@@ -1,12 +1,13 @@
 # Need to create export header so static class variables can be exported on windows build
 include(GenerateExportHeader)
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
+
 # When building in-tree, sibling component targets are already available via add_subdirectory. Optional component
 # detection uses TARGET checks below.
 find_package(trajopt REQUIRED)
 
 set(LIB_SOURCE_FILES
-    src/cereal_serialization.cpp
     src/nodes/continuous_contact_check_task.cpp
     src/nodes/discrete_contact_check_task.cpp
     src/nodes/fix_state_bounds_task.cpp
