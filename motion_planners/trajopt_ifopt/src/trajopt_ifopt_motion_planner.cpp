@@ -29,6 +29,7 @@ TESSERACT_COMMON_IGNORE_WARNINGS_PUSH
 #include <trajopt_ifopt/variable_sets/var.h>
 #include <trajopt_sqp/trust_region_sqp_solver.h>
 #include <trajopt_sqp/trajopt_qp_problem.h>
+#include <cassert>
 TESSERACT_COMMON_IGNORE_WARNINGS_POP
 
 #include <tesseract/motion_planners/trajopt_ifopt/trajopt_ifopt_motion_planner.h>
@@ -98,7 +99,7 @@ PlannerResponse TrajOptIfoptMotionPlanner::solve(const PlannerRequest& request) 
   std::vector<TrajOptIfoptWaypointInfo> wp_infos;
   nodes.reserve(move_instructions.size());
   wp_infos.reserve(move_instructions.size());
-  for (int i = 0; i < move_instructions.size(); ++i)
+  for (int i = 0; i < static_cast<int>(move_instructions.size()); ++i)
   {
     const auto& move_instruction =
         move_instructions[static_cast<std::size_t>(i)].get().as<tesseract::command_language::MoveInstructionPoly>();
