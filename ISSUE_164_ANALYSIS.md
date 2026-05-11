@@ -4,6 +4,10 @@
 **Status:** ⚠️ **OPEN - Known Limitation** (since January 19, 2022)
 **Severity:** 🟡 **MEDIUM** - Limits flexibility but doesn't cause crashes
 
+> 📌 **Review update — 2026-05-11:** Verified — this is genuinely a TOTG
+> algorithmic limitation (uniform-only scaling), not a Tesseract-specific bug.
+> Conclusions in this document are correct.
+
 ---
 
 ## Problem Description

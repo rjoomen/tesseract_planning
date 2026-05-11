@@ -2,6 +2,13 @@
 
 Generated: 2026-01-17
 
+> ⚠️ **Review update — 2026-05-11:** §3 "Critical Bug Found in MoveIt2" below has
+> been **retracted** — both projects have the same code and it isn't actually a
+> bug. See `REVIEW_UPDATE_2026-05.md` §2 for details, and §3–§5 there for findings
+> this document missed.
+> File paths and namespaces are stale; actual source is at
+> `time_parameterization/totg/...`, namespace `tesseract::time_parameterization`.
+
 ## Overview
 
 Both implementations are based on the original Georgia Tech algorithm by Tobias Kunz (2012). This document highlights the key differences in implementation details, particularly focusing on numerical stability and robustness.
@@ -110,11 +117,13 @@ CircularPathSegment(const Eigen::VectorXd& start, const Eigen::VectorXd& interse
 | **acos protection** | None (relies on parallel check) | `std::max(-1.0, dot_product)` |
 | **Antiparallel handling** | Explicitly checks both ends | Only checks parallel (norm difference) |
 
-**IMPORTANT FINDING:**
+**IMPORTANT FINDING (severity strengthened 2026-05-11):**
 - **MoveIt2** checks for both parallel (dot ≈ 1) and antiparallel (dot ≈ -1) cases
-- **Tesseract** only checks for parallel cases using norm difference, which CANNOT detect antiparallel vectors
-- **Tesseract** adds `std::max(-1.0, ...)` protection to prevent acos(x) with x < -1, which can occur with antiparallel vectors due to floating-point errors
-- This suggests Tesseract may have a **potential bug** where antiparallel vectors could slip through and cause issues
+- **Tesseract** only checks for parallel cases using norm difference, which **cannot** detect antiparallel vectors
+- The `std::max(-1.0, ...)` clamp prevents `acos` returning NaN, but it does **not** rescue the rest of the geometry. For antiparallel inputs, `angle ≈ π`, so `tan(0.5·angle) = ∞`, giving `radius = 0`, and the `center` calculation contains `radius / cos(0.5·π) = 0/0 = NaN`. `x` becomes NaN; `getConfig(s)` returns NaN for every `s`.
+- `Path::Path` then silently fails to add the bridging linear segment (the NaN check `(end_config - start_config).norm() > 0.000001` evaluates to false on NaN) and uses the NaN endpoint as the start of the next segment — corrupting the entire path.
+- The dummy-joint workaround (Issue #27) is what currently prevents this from blowing up in practice, by ensuring no two adjacent path directions in the augmented (n+1)-dim space are antiparallel.
+- See `REVIEW_UPDATE_2026-05.md` §6 for the full walk-through.
 
 ---
 
@@ -134,33 +143,17 @@ while (after - before > EPS)
 }
 ```
 
-### Critical Bug Found in MoveIt2
+### ~~Critical Bug Found in MoveIt2~~ — RETRACTED (2026-05-11)
 
-**MoveIt2 (line 759-761):**
-```cpp
-else
-{
-  if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory_.back().path_vel_, false) >
-      getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
-  {
-    return false;
-  }
-}
-```
-
-**Tesseract (line 758-764):**
-```cpp
-else
-{
-  if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, false) >
-      getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
-  {
-    return false;
-  }
-}
-```
-
-**BUG:** MoveIt2 uses `trajectory_` (class member) instead of `trajectory` (function parameter). This could reference stale data and cause incorrect behavior!
+> **Original claim retracted.** Tesseract's current source (`time_optimal_trajectory_generation.cpp:758-764`) is identical to MoveIt2's — both use
+> `trajectory_.back()` (class member) in the else branch. The earlier "Tesseract is CORRECT" code block in this section was inaccurate.
+>
+> Furthermore, this isn't actually a bug in either project: `integrateForward` is
+> called as `integrateForward(trajectory_, …)` (line 460), so the parameter
+> `trajectory` and the member `trajectory_` refer to the same list during
+> execution. The mixed naming is stylistic, not functional.
+>
+> See `REVIEW_UPDATE_2026-05.md` §2 for full details.
 
 ---
 
@@ -267,9 +260,9 @@ if (!tesseract_common::almostEqualRelativeAndAbs(config_deriv[i], 0.0,
 
 ### MoveIt2 Issues Found
 
-1. **Bug in integrateForward (line 759):** Uses `trajectory_` instead of `trajectory`
-2. **No division-by-zero protection in integrateBackward:** When slopes are equal
-3. **Less robust epsilon comparisons:** Uses simple arithmetic comparisons
+1. ~~Bug in integrateForward (line 759)~~ **— retracted, see above and `REVIEW_UPDATE_2026-05.md` §2**
+2. **No division-by-zero protection in integrateBackward:** When slopes are equal (Tesseract has the equal-slope guard at lines 815-821)
+3. **Less robust epsilon comparisons:** Uses simple arithmetic comparisons (Tesseract uses `almostEqualRelativeAndAbs`)
 
 ### Tesseract Improvements
 

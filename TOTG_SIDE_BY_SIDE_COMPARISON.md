@@ -1,5 +1,12 @@
 # Side-by-Side Code Comparison: MoveIt2 vs Tesseract TOTG
 
+> ⚠️ **Review update — 2026-05-11:** §4 "CRITICAL BUG in MoveIt2" below has been
+> **retracted** — the displayed "Tesseract (CORRECT)" code does not match the
+> actual current Tesseract source. Both projects have the same code, and it is
+> not actually a bug. See `REVIEW_UPDATE_2026-05.md` §2.
+> Also see `REVIEW_UPDATE_2026-05.md` §6 for a more accurate description of the
+> antiparallel case in §1 of this document.
+
 ## 1. CircularPathSegment Constructor - Parallel/Antiparallel Detection
 
 ### MoveIt2 Approach (Dot Product Method)
@@ -43,10 +50,14 @@ if ((start_direction - end_direction).norm() < 0.000001)
 const double angle = acos(std::max(-1.0, start_direction.dot(end_direction)));
 ```
 
-**Analysis:**
+**Analysis (severity strengthened 2026-05-11):**
 - MoveIt2: Explicitly handles both parallel AND antiparallel cases before acos
-- Tesseract: Only handles parallel case, relies on `std::max(-1.0, ...)` to prevent NaN from antiparallel vectors
-- Tesseract approach may be less efficient as it doesn't early-exit for antiparallel cases
+- Tesseract: Only handles parallel case. `std::max(-1.0, ...)` prevents `acos`-returning-NaN but does **not** rescue the rest of the constructor. For antiparallel inputs:
+  - `tan(0.5·angle) = tan(π/2) = ∞` → `radius = 0`
+  - `cos(0.5·angle) = 0` → `center = … * 0 / 0 = NaN`
+  - `x = NaN`, and `getConfig(s)` returns NaN for any `s`
+  - `Path::Path` then silently swallows the NaN (the `norm() > 0.000001` comparison returns false on NaN) and propagates NaN into subsequent segments
+- The dummy-joint workaround is what currently prevents this from manifesting. See `REVIEW_UPDATE_2026-05.md` §6.
 
 ---
 
@@ -146,66 +157,38 @@ if (start1->path_pos_ < path_pos ||
 
 ---
 
-## 4. integrateForward - CRITICAL BUG in MoveIt2
+## 4. ~~integrateForward - CRITICAL BUG in MoveIt2~~ — RETRACTED (2026-05-11)
 
-### MoveIt2 (BUG at line 759)
-```cpp
-if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
-{
-  if (after > next_discontinuity->first)
-  {
-    return false;
-  }
-  else if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, true) >
-           getAccelerationMaxPathVelocityDeriv(trajectory.back().path_pos_))
-  {
-    return false;
-  }
-}
-else
-{
-  // BUG: Uses trajectory_ (class member) instead of trajectory (function parameter)
-  if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory_.back().path_vel_, false) >
-                                                        // ^^^^^^^^^^^
-      getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
-                                      // ^^^^^^^^^^^
-  {
-    return false;
-  }
-}
-```
-
-### Tesseract (CORRECT)
-```cpp
-if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
-{
-  if (after > next_discontinuity->first)
-  {
-    return false;
-  }
-
-  if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, true) >
-      getAccelerationMaxPathVelocityDeriv(trajectory.back().path_pos_))
-  {
-    return false;
-  }
-}
-else
-{
-  // CORRECT: Uses trajectory (function parameter)
-  if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, false) >
-                                                        // ^^^^^^^^^^^^^^
-      getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
-  {
-    return false;
-  }
-}
-```
-
-**Analysis:**
-- MoveIt2 has a clear bug where it accesses the wrong trajectory
-- This could cause incorrect trajectory validation
-- Tesseract correctly uses the function parameter throughout
+> The "Tesseract (CORRECT)" code shown in the original version of this section
+> does not match the actual Tesseract source. The real Tesseract code matches
+> MoveIt2 (`trajectory_.back().path_vel_` in the else branch).
+>
+> **Actual current Tesseract** (`time_optimal_trajectory_generation.cpp:745-766`):
+>
+> ```cpp
+> if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
+> {
+>   if (after > next_discontinuity->first)
+>     return false;
+>
+>   if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, true) >
+>       getAccelerationMaxPathVelocityDeriv(trajectory.back().path_pos_))
+>     return false;
+> }
+> else
+> {
+>   if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory_.back().path_vel_, false) >
+>       getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
+>     return false;
+> }
+> ```
+>
+> Note the mixed `trajectory` / `trajectory_` in the else branch — same as MoveIt2.
+> This is **not a bug** in either project: `integrateForward` is called as
+> `integrateForward(trajectory_, …)`, so `trajectory` (the parameter) and
+> `trajectory_` (the member) point to the same list.
+>
+> See `REVIEW_UPDATE_2026-05.md` §2.
 
 ---
 
@@ -310,8 +293,8 @@ struct TrajectoryStep
 | **CircularPathSegment antiparallel handling** | Explicit check | Implicit via acos protection | MoveIt2 (early exit) |
 | **integrateBackward division by zero** | No protection | Protected | Tesseract |
 | **integrateBackward epsilon comparison** | Simple arithmetic | almostEqualRelativeAndAbs | Tesseract |
-| **integrateForward variable usage** | Bug (wrong variable) | Correct | Tesseract |
+| **integrateForward variable usage** | Same mixed `trajectory`/`trajectory_` as Tesseract — not a bug (see §4 / REVIEW_UPDATE §2) | Same as MoveIt2 | Tie |
 | **getMinMaxPathAcceleration zero check** | No check | Protected | Tesseract |
 | **TrajectoryStep NaN detection** | None | Asserts on construction | Tesseract |
 
-**Overall: Tesseract has superior numerical stability and robustness, with one confirmed bug fix from MoveIt2.**
+**Overall:** Tesseract has superior numerical stability in `integrateBackward`, but the "one confirmed bug fix from MoveIt2" originally cited here was retracted (see `REVIEW_UPDATE_2026-05.md` §2). Tesseract also has its own bugs not covered in this document — see REVIEW_UPDATE §3, §4, §5.

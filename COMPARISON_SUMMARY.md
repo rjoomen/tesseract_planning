@@ -3,6 +3,19 @@
 **Analysis Date:** January 17, 2026
 **Branch:** `claude/compare-totg-implementations-7XrhU`
 
+> ⚠️ **Review update — 2026-05-11:** Several claims in this document have been
+> corrected or strengthened. See **`REVIEW_UPDATE_2026-05.md`** for the canonical
+> current state. In particular:
+> - The "MoveIt2 line 759 bug" claim below is **wrong**; Tesseract has the same code
+>   and it isn't actually a bug.
+> - The antiparallel handling is more broken than described here (NaN propagates
+>   through the geometry, not just `acos`).
+> - Tesseract is exposed to moveit2#3565 (huge accelerations) — not covered in
+>   this document.
+> - File paths and namespaces below are stale after the recent repo restructure;
+>   actual source is now at `time_parameterization/totg/...` with namespace
+>   `tesseract::time_parameterization`.
+
 ---
 
 ## TL;DR
@@ -13,10 +26,11 @@
 
 | Category | Tesseract | MoveIt2 |
 |----------|-----------|---------|
-| **Numerical Stability** | 🟢 Superior | 🟡 Good |
-| **Division by Zero Protection** | ✅ Yes | ❌ No |
+| **Numerical Stability** | 🟢 Superior in `integrateBackward` | 🟡 Good |
+| **Division by Zero Protection** | ✅ Equal-slope guard in `integrateBackward` | ❌ No |
 | **Endpoint Velocity Handling** | ✅ Safe (zero) | ⚠️ Changed (non-zero) |
-| **Confirmed Bugs** | ✅ None found | ❌ 1 (line 759) |
+| **Antiparallel geometry NaN** | ❌ NaN propagates silently | ❌ Same (mitigated by explicit check) |
+| **moveit2#3565 (huge accel)** | ❌ Exposed | ❌ Exposed |
 | **Torque Limits** | ❌ No | ✅ Yes (2023) |
 | **Jerk Limits (Ruckig)** | ✅ Yes | ✅ Yes |
 
@@ -90,22 +104,14 @@ TrajectoryStep(double path_pos, double path_vel)
 
 ---
 
-### 2. MoveIt2 Bug Found
+### 2. ~~MoveIt2 Bug Found~~ — RETRACTED (2026-05-11)
 
-**Location:** `integrateForward` line 759
-
-**Bug:** Uses wrong variable reference
-```cpp
-// MoveIt2 - WRONG
-if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory_.back().path_vel_, false) >
-//                                                    ^^^^^^^^^^^^ class member
-
-// Tesseract - CORRECT
-if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, false) >
-//                                                    ^^^^^^^^^^^^^^ function parameter
-```
-
-**Impact:** Could reference stale data, causing incorrect trajectory validation.
+> **This claim was wrong.** Tesseract's current source at lines 758-764 also uses
+> `trajectory_.back()` (class member) in the else branch — same as MoveIt2.
+> Since `integrateForward` is invoked as `integrateForward(trajectory_, …)`, the
+> parameter `trajectory` and the member `trajectory_` reference the same list
+> during execution. The stylistic inconsistency is harmless. See
+> `REVIEW_UPDATE_2026-05.md` §2.
 
 ---
 
@@ -424,11 +430,11 @@ traj2: B → C (starts at B)
 |--------|-----------|---------|
 | **Numerical Stability** | Excellent | Good |
 | **Edge Case Handling** | Excellent | Good |
-| **Code Correctness** | Excellent | Good (1 bug found) |
+| **Code Correctness** | Good — has its own bugs not in original analysis (see `REVIEW_UPDATE_2026-05.md` §3, §4, §5) | Good — the "line 759 bug" originally listed here is not actually a bug |
 | **Feature Completeness** | Very Good | Excellent |
 | **Trajectory Safety** | Excellent | Good (endpoint issues) |
 
-**Overall:** Tesseract = 9/10, MoveIt2 = 8/10
+**Overall:** Tesseract ≈ MoveIt2 (revised 2026-05-11 — see `REVIEW_UPDATE_2026-05.md`). Tesseract still wins on `integrateBackward` numerical stability, MoveIt2 wins on torque limits and explicit antiparallel handling. The "1 confirmed bug" basis for the prior 8/10 deduction was retracted.
 
 ---
 

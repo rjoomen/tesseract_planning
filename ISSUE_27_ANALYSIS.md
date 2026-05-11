@@ -4,6 +4,13 @@
 **Related:** [moveit/moveit#2495](https://github.com/moveit/moveit/issues/2495)
 **Status:** ⚠️ **Workaround implemented, root cause NOT fixed**
 
+> 📌 **Review update — 2026-05-11:** The connection between Issue #27 and the
+> antiparallel-vector gap is **stronger** than this document suggests. The
+> antiparallel case doesn't just risk `acos` returning NaN — it produces NaN
+> through the entire `CircularPathSegment` geometry, and `Path::Path` silently
+> swallows the NaN. The dummy-joint workaround is what actually keeps the path
+> well-defined. See `REVIEW_UPDATE_2026-05.md` §6.
+
 ---
 
 ## Problem Description

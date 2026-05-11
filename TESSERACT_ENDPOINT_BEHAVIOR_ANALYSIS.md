@@ -1,5 +1,10 @@
 # Tesseract TOTG Endpoint Velocity/Acceleration Behavior Analysis
 
+> 📌 **Review update — 2026-05-11:** Verified — Tesseract enforces zero
+> velocity/acceleration at trajectory endpoints (lines 458, 474 in current
+> source). Conclusions in this document are correct. File paths updated:
+> source is now at `time_parameterization/totg/src/...`.
+
 ## Question
 Does Tesseract have the same issue as MoveIt2 Jazzy where endpoints have non-zero velocities/accelerations?
 

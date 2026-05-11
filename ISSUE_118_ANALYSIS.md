@@ -5,6 +5,11 @@
 **Status:** ⚠️ **OPEN but APPEARS FIXED in current code**
 **Severity:** 🟡 **MEDIUM** (if still broken) / 🟢 **LOW** (if fixed but not closed)
 
+> 📌 **Review update — 2026-05-11:** Verified — scaling factors are applied at
+> `time_parameterization/totg/src/time_optimal_trajectory_generation.cpp:168-173`.
+> Conclusions in this document are correct. File path updated for the recent
+> repo restructure.
+
 ---
 
 ## Problem Description (Original Issue)
