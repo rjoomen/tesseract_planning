@@ -323,7 +323,7 @@ if (velocity_limits.rows() != acceleration_limits.rows())
 ### MoveIt Pull Requests
 - [PR #571 - Ruckig trajectory smoothing](https://github.com/moveit/moveit2/pull/571)
 - [PR #809 - Add TOTG plugin](https://github.com/moveit/moveit/pull/809)
-- [PR #1218 - Make TOTG default](https://github.com/moveit/moveit2/pull/1218)
+- [PR #1218 - Make TOTG the default time-parameterization algorithm](https://github.com/moveit/moveit2/pull/1218)
 - [PR #1729 - Fix invalid accelerations](https://github.com/moveit/moveit/pull/1729)
 - [PR #1794 - Require velocity/acceleration limits](https://github.com/ros-planning/moveit2/pull/1794)
 - [PR #1861 - Fix segfault in TOTG](https://github.com/moveit/moveit/pull/1861)
@@ -331,14 +331,14 @@ if (velocity_limits.rows() != acceleration_limits.rows())
 - [PR #2185 - Parameterize trajectory density](https://github.com/moveit/moveit/pull/2185)
 - [PR #2882 - Readability improvements](https://github.com/moveit/moveit/pull/2882)
 - [PR #2937 - Reduce minimum limits](https://github.com/moveit/moveit/pull/2937)
-- [PR #2957 - API stress tests, fix undefined behavior](https://github.com/moveit/moveit/pull/2957)
+- [PR #2957 - Antiparallel division-by-zero fix in CircularPathSegment + API stress tests](https://github.com/moveit/moveit/pull/2957) — Tesseract still has this bug; see REVIEW_UPDATE §6 / §11
 - [PR #3412 - TOTG with torque limits](https://github.com/moveit/moveit/pull/3412)
 - [PR #3427 - Fixup TOTG torque limits](https://github.com/moveit/moveit/pull/3427)
 
 ### MoveIt Issues
 - [Issue #1665 - Invalid accelerations](https://github.com/moveit/moveit/issues/1665)
 - [Issue #2495 - TOTG may fail returning to start](https://github.com/moveit/moveit/issues/2495)
-- [Issue #2741 - Blend radius duplicate timestamps](https://github.com/moveit/moveit2/issues/2741)
+- [Issue #2741 - Pilz Industrial Motion Planner blend generates duplicate `time_from_start` (Pilz issue, not TOTG)](https://github.com/moveit/moveit2/issues/2741)
 - [Issue #3014 - Endpoint velocity changes](https://github.com/moveit/moveit2/issues/3014)
 - [Issue #3504 - Acceleration limits not loaded](https://github.com/moveit/moveit2/issues/3504)
 

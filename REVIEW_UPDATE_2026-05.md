@@ -230,7 +230,31 @@ Reorganized priorities given the new findings:
 
 1. Claimed MoveIt2 has a bug at line 759 that Tesseract fixed — both projects have the same code, and it isn't a bug (§2).
 2. Framed antiparallel handling as "protected by `acos` clamp" — the geometry still produces NaN that propagates silently (§6).
-3. Missed Issue [#3565](https://github.com/moveit/moveit2/issues/3565) exposure (§3).
+3. Missed [moveit2#3565](https://github.com/moveit/moveit2/issues/3565) exposure (§3).
 4. Missed `getTime` div-by-zero in coast regions (§4).
 5. Missed the inconsistent zero-detection across the two `getMin*` functions (§5).
-6. Stale file paths and namespaces throughout (project was restructured in the recent rebased commits).
+6. Mis-attributed PR numbers in the "Bug Fixes Tesseract Already Has" table — see §11.
+7. Stale file paths and namespaces throughout (project was restructured in the recent rebased commits).
+
+---
+
+## 11. Correction — PR mis-attribution in `COMPARISON_SUMMARY.md` bug-fixes table
+
+Verified each cited MoveIt PR against its actual title and content. Two rows in the original table were misattributed:
+
+| Row in original table | Cited PR | What the cited PR actually does | Correction |
+|---|---|---|---|
+| "Division by zero (CircularPathSegment) → Partially (only parallel)" | [moveit/moveit2#1218](https://github.com/moveit/moveit2/pull/1218) | "Make TOTG the default time-parameterization algorithm" — **not** a CircularPathSegment bug fix | This row's bug description is real, but the PR# was wrong. The correct PR for this fix is [moveit/moveit#2957](https://github.com/moveit/moveit/pull/2957). |
+| "Undefined behavior (deep copy) → N/A (different structure)" | [moveit/moveit#2957](https://github.com/moveit/moveit/pull/2957) | **The antiparallel/parallel division-by-zero fix in `CircularPathSegment`** — replaced the norm-difference check with `start_dot_end > 0.999999 \|\| start_dot_end < -0.999999`. Not "deep copy". | Row description was wrong AND status was wrong. The fix is what Tesseract is missing. |
+
+**Net effect:** the prior table essentially listed the same MoveIt fix twice under two wrong descriptions, marked the one with the right PR# as "Partially fixed" and the one with the wrong description as "N/A". After correction:
+
+- One row only: **antiparallel/parallel division-by-zero in `CircularPathSegment`**, fixed by [moveit/moveit#2957](https://github.com/moveit/moveit/pull/2957), **MISSING in Tesseract**.
+
+The fix from moveit#2957 (replace the norm-difference parallel check with the dot-product bounds check) is exactly the 5-line change discussed throughout the analysis docs as the antiparallel fix. The prior analysis had identified the gap, but didn't realize MoveIt had also explicitly fixed it via this PR.
+
+### Other label corrections from verification
+
+- [moveit/moveit2#2741](https://github.com/moveit/moveit2/issues/2741) is "Pilz Industrial Motion Planner blend generates duplicate `time_from_start`" — a Pilz planner issue, **not** a TOTG issue. The original docs labeled it "Blend radius duplicate timestamps" which is misleading.
+- [moveit/moveit#809](https://github.com/moveit/moveit/pull/809) is "Add time-optimal trajectory parameterization plugin" — **closed, not merged**. The TOTG plugin was actually merged via #1365. The reference still resolves, just worth knowing the linked PR isn't the merge.
+- [moveit/moveit2#3504](https://github.com/moveit/moveit2/issues/3504) is closed as "not planned" — it's about `RobotModelLoader::jointBoundsFromURDF` not loading acceleration limits, not strictly a TOTG bug.

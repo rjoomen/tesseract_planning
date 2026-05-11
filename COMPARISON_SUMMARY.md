@@ -123,9 +123,8 @@ All critical MoveIt bug fixes are already incorporated in Tesseract:
 |-----|-----------|---------------------|
 | acos NaN segfault | [#1861](https://github.com/moveit/moveit/pull/1861) | ✅ Fixed (line 253) |
 | Invalid accelerations | [#1729](https://github.com/moveit/moveit/pull/1729) | ✅ Fixed (lines 676-680) |
-| Division by zero (CircularPathSegment) | [#1218](https://github.com/moveit/moveit2/pull/1218) | ⚠️ Partially (only parallel) |
 | Single-waypoint trajectories | [#2054](https://github.com/moveit/moveit/pull/2054) | ✅ Fixed (lines 144-154) |
-| Undefined behavior (deep copy) | [#2957](https://github.com/moveit/moveit/pull/2957) | N/A (different structure) |
+| Antiparallel direction division-by-zero in `CircularPathSegment` | [moveit/moveit#2957](https://github.com/moveit/moveit/pull/2957) | ❌ MISSING — Tesseract still uses old `(start_dir − end_dir).norm()` check; see `REVIEW_UPDATE_2026-05.md` §6 |
 
 ---
 
@@ -472,7 +471,7 @@ traj2: B → C (starts at B)
 
 ### Key MoveIt2 Pull Requests
 - [#571 - Ruckig smoothing](https://github.com/moveit/moveit2/pull/571)
-- [#1218 - Make TOTG default](https://github.com/moveit/moveit2/pull/1218)
+- [#1218 - Make TOTG the default time-parameterization algorithm](https://github.com/moveit/moveit2/pull/1218)
 - [#1729 - Fix invalid accelerations](https://github.com/moveit/moveit/pull/1729)
 - [#1794 - Require limits](https://github.com/ros-planning/moveit2/pull/1794)
 - [#1861 - Fix segfault](https://github.com/moveit/moveit/pull/1861)
@@ -480,13 +479,13 @@ traj2: B → C (starts at B)
 - [#2185 - Parameterize density](https://github.com/moveit/moveit/pull/2185)
 - [#2882 - Readability](https://github.com/moveit/moveit/pull/2882)
 - [#2937 - Reduce minimum limits](https://github.com/moveit/moveit/pull/2937)
-- [#2957 - Fix undefined behavior](https://github.com/moveit/moveit/pull/2957)
+- [#2957 - Antiparallel division-by-zero fix in CircularPathSegment + API stress tests](https://github.com/moveit/moveit/pull/2957)
 - [#3412 - Torque limits](https://github.com/moveit/moveit/pull/3412)
 - [#3427 - Fixup torque limits](https://github.com/moveit/moveit/pull/3427)
 
 ### Key MoveIt2 Issues
 - [#1665 - Invalid accelerations](https://github.com/moveit/moveit/issues/1665)
-- [#2741 - Duplicate timestamps](https://github.com/moveit/moveit2/issues/2741)
+- [#2741 - Pilz Industrial Motion Planner blend generates duplicate `time_from_start` (Pilz issue, not TOTG)](https://github.com/moveit/moveit2/issues/2741)
 - [#3014 - Endpoint velocity changes](https://github.com/moveit/moveit2/issues/3014)
 - [#3504 - Acceleration limits not loaded](https://github.com/moveit/moveit2/issues/3504)
 
