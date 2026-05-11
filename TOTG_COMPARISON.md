@@ -122,7 +122,7 @@ CircularPathSegment(const Eigen::VectorXd& start, const Eigen::VectorXd& interse
 - **Tesseract** only checks for parallel cases using norm difference, which **cannot** detect antiparallel vectors
 - The `std::max(-1.0, ...)` clamp prevents `acos` returning NaN, but it does **not** rescue the rest of the geometry. For antiparallel inputs, `angle ≈ π`, so `tan(0.5·angle) = ∞`, giving `radius = 0`, and the `center` calculation contains `radius / cos(0.5·π) = 0/0 = NaN`. `x` becomes NaN; `getConfig(s)` returns NaN for every `s`.
 - `Path::Path` then silently fails to add the bridging linear segment (the NaN check `(end_config - start_config).norm() > 0.000001` evaluates to false on NaN) and uses the NaN endpoint as the start of the next segment — corrupting the entire path.
-- The dummy-joint workaround (Issue #27) is what currently prevents this from blowing up in practice, by ensuring no two adjacent path directions in the augmented (n+1)-dim space are antiparallel.
+- The dummy-joint workaround (Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)) is what currently prevents this from blowing up in practice, by ensuring no two adjacent path directions in the augmented (n+1)-dim space are antiparallel.
 - See `REVIEW_UPDATE_2026-05.md` §6 for the full walk-through.
 
 ---

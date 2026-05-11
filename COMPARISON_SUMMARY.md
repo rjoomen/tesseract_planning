@@ -10,7 +10,7 @@
 >   and it isn't actually a bug.
 > - The antiparallel handling is more broken than described here (NaN propagates
 >   through the geometry, not just `acos`).
-> - Tesseract is exposed to moveit2#3565 (huge accelerations) — not covered in
+> - Tesseract is exposed to [moveit2#3565](https://github.com/moveit/moveit2/issues/3565) (huge accelerations) — not covered in
 >   this document.
 > - File paths and namespaces below are stale after the recent repo restructure;
 >   actual source is now at `time_parameterization/totg/...` with namespace
@@ -30,7 +30,7 @@
 | **Division by Zero Protection** | ✅ Equal-slope guard in `integrateBackward` | ❌ No |
 | **Endpoint Velocity Handling** | ✅ Safe (zero) | ⚠️ Changed (non-zero) |
 | **Antiparallel geometry NaN** | ❌ NaN propagates silently | ❌ Same (mitigated by explicit check) |
-| **moveit2#3565 (huge accel)** | ❌ Exposed | ❌ Exposed |
+| **[moveit2#3565](https://github.com/moveit/moveit2/issues/3565) (huge accel)** | ❌ Exposed | ❌ Exposed |
 | **Torque Limits** | ❌ No | ✅ Yes (2023) |
 | **Jerk Limits (Ruckig)** | ✅ Yes | ✅ Yes |
 
@@ -164,7 +164,7 @@ All critical MoveIt bug fixes are already incorporated in Tesseract:
 
 **Risk:**
 - Division by zero when path reverses direction (A→B→A trajectories)
-- **Causes Issue #27** - "Error while integrating backward: Negative path velocity"
+- **Causes Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)** - "Error while integrating backward: Negative path velocity"
 - Currently masked by dummy joint workaround (lines 156-172)
 
 **Fix:** Add 5 lines of code in `CircularPathSegment` constructor:
@@ -217,7 +217,7 @@ if (velocity_limits.rows() != acceleration_limits.rows())
 
 ---
 
-### 6. Known Issue: A→B→A Trajectories (Issue #27)
+### 6. Known Issue: A→B→A Trajectories (Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27))
 
 **Status:** ⚠️ Has workaround, not properly fixed
 
@@ -269,7 +269,7 @@ See [ISSUE_27_ANALYSIS.md](ISSUE_27_ANALYSIS.md) for complete details.
 
 ---
 
-### 7. Known Limitation: Per-Waypoint Scaling (Issue #164)
+### 7. Known Limitation: Per-Waypoint Scaling (Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164))
 
 **Status:** ℹ️ **DOCUMENTED - Fundamental Algorithmic Limitation**
 
@@ -314,7 +314,7 @@ See [ISSUE_164_ANALYSIS.md](ISSUE_164_ANALYSIS.md) for complete details and work
 
 ---
 
-### 8. Potentially Fixed: Unused Scaling Factors (Issue #118)
+### 8. Potentially Fixed: Unused Scaling Factors (Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118))
 
 **Status:** ✅ **APPEARS FIXED - Awaiting Verification**
 
@@ -353,7 +353,7 @@ totg::Trajectory parameterized(path, max_velocity_dummy_appended, max_accelerati
 1. Test with various scaling factors (0.25, 0.5, 0.75, 1.0)
 2. Verify trajectory duration scales appropriately
 3. Verify limits are respected
-4. If tests pass → Close issue #118 on GitHub
+4. If tests pass → Close issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) on GitHub
 
 **Comparison with MoveIt2:**
 - ✅ MoveIt2 has same implementation pattern
@@ -369,7 +369,7 @@ See [ISSUE_118_ANALYSIS.md](ISSUE_118_ANALYSIS.md) for complete details and test
 
 ### Immediate Actions (Quick Wins)
 
-1. **Add antiparallel vector check** - 5 minutes, prevents crashes AND fixes Issue #27
+1. **Add antiparallel vector check** - 5 minutes, prevents crashes AND fixes Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)
 2. **Add strict limit validation** - 1 minute, fail fast on invalid config
 3. **Verify minimum limit handling** - 10 minutes investigation
 
@@ -451,7 +451,7 @@ traj2: B → C (starts at B)
 1. ✅ Keep Tesseract's superior numerical stability
 2. ✅ Keep Tesseract's safe endpoint handling
 3. ⚠️ Add the 3 small improvements listed above (especially antiparallel fix)
-4. ⚠️ Antiparallel fix would **solve Issue #27** (negative path velocity)
+4. ⚠️ Antiparallel fix would **solve Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)** (negative path velocity)
 5. ⚠️ Could then **remove dummy joint workaround** (cleaner code)
 6. ⚠️ Evaluate if torque limits are needed for your application
 7. ❌ Don't port MoveIt2 code wholesale (would be a downgrade)

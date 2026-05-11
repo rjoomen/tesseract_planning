@@ -1,10 +1,10 @@
-# Issue #27 Analysis: TOTG "Negative Path Velocity" Error
+# Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) Analysis: TOTG "Negative Path Velocity" Error
 
 **Issue:** [tesseract-robotics/tesseract_planning#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)
 **Related:** [moveit/moveit#2495](https://github.com/moveit/moveit/issues/2495)
 **Status:** ⚠️ **Workaround implemented, root cause NOT fixed**
 
-> 📌 **Review update — 2026-05-11:** The connection between Issue #27 and the
+> 📌 **Review update — 2026-05-11:** The connection between Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) and the
 > antiparallel-vector gap is **stronger** than this document suggests. The
 > antiparallel case doesn't just risk `acos` returning NaN — it produces NaN
 > through the entire `CircularPathSegment` geometry, and `Path::Path` silently
@@ -56,7 +56,7 @@ if (path_vel < 0.0)  // ← ERROR TRIGGERED HERE
 
 ## Root Cause Analysis
 
-### Original Diagnosis (from Issue #27)
+### Original Diagnosis (from Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27))
 
 **Levi Armstrong identified:**
 1. **Uninitialized data** at line 774 (in older version)
@@ -88,7 +88,7 @@ This issue is **directly related** to the antiparallel vector problem identified
 
 ---
 
-## Current Workaround (PR #32)
+## Current Workaround (PR [#32](https://github.com/tesseract-robotics/tesseract_planning/issues/32))
 
 ### Implementation
 Located at lines 156-172 in `time_optimal_trajectory_generation.cpp`:
@@ -171,7 +171,7 @@ This test is **deliberately disabled** because:
 
 ### Priority 1: Fix Antiparallel Vector Detection
 
-This would likely fix issue #27 as a side effect:
+This would likely fix issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) as a side effect:
 
 ```cpp
 // In CircularPathSegment constructor
@@ -264,7 +264,7 @@ end_direction = [-1, 0, 0]  // Antiparallel
 
 This issue **confirms** the antiparallel vector detection problem identified earlier:
 
-| Earlier Finding | Issue #27 Connection |
+| Earlier Finding | Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) Connection |
 |----------------|----------------------|
 | Antiparallel vectors only partially checked | ✅ **Confirmed** - A→B→A creates antiparallel tangents |
 | Could cause division by zero in radius calc | ✅ **Confirmed** - Leads to invalid segments |
@@ -294,7 +294,7 @@ This issue **confirms** the antiparallel vector detection problem identified ear
 
 ## Conclusion
 
-**Issue #27 is a known limitation with a working workaround**, but the root cause remains unfixed in both Tesseract and MoveIt. The recommended antiparallel vector detection fix from earlier analysis would likely resolve this issue as a beneficial side effect.
+**Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) is a known limitation with a working workaround**, but the root cause remains unfixed in both Tesseract and MoveIt. The recommended antiparallel vector detection fix from earlier analysis would likely resolve this issue as a beneficial side effect.
 
 **Priority:** 🟡 **MEDIUM** - Has workaround, but proper fix would be better
 

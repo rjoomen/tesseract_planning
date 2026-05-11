@@ -1,4 +1,4 @@
-# Issue #164 Analysis: TOTG State Scaling Limitation
+# Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) Analysis: TOTG State Scaling Limitation
 
 **Issue:** [tesseract-robotics/tesseract_planning#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164)
 **Status:** ⚠️ **OPEN - Known Limitation** (since January 19, 2022)
@@ -203,7 +203,7 @@ Single scaling factors for entire trajectory.
 
 ## Levi Armstrong's Recommendation
 
-From Issue #164 comments:
+From Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) comments:
 
 > "Disable independent state scaling functionality for this algorithm"
 
@@ -220,12 +220,12 @@ This issue is **independent** of the other issues found:
 
 | Issue | Cause | Impact | Status |
 |-------|-------|--------|--------|
-| **#27 - Negative velocity** | Antiparallel vectors | Crashes on A→B→A | Has workaround |
-| **#164 - State scaling** | Algorithm limitation | Cannot vary speed per waypoint | Fundamental limit |
-| **MoveIt #2495** | Same as Tesseract #27 | Same issue | Unfixed |
+| **[#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) - Negative velocity** | Antiparallel vectors | Crashes on A→B→A | Has workaround |
+| **[#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) - State scaling** | Algorithm limitation | Cannot vary speed per waypoint | Fundamental limit |
+| **MoveIt [#2495](https://github.com/moveit/moveit/issues/2495)** | Same as Tesseract [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) | Same issue | Unfixed |
 | **Antiparallel detection** | Missing check | Potential division by zero | Easy fix |
 
-**Issue #164 is a fundamental algorithmic limitation, not a bug.**
+**Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) is a fundamental algorithmic limitation, not a bug.**
 
 ---
 
@@ -294,7 +294,7 @@ bool computeTimeStamps(
 
 ## Summary
 
-**Issue #164 describes a fundamental limitation of the TOTG algorithm**, not a bug that needs fixing. The algorithm is designed to compute globally time-optimal trajectories with uniform limits. Attempting to apply per-waypoint scaling after the fact creates invalid trajectories.
+**Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) describes a fundamental limitation of the TOTG algorithm**, not a bug that needs fixing. The algorithm is designed to compute globally time-optimal trajectories with uniform limits. Attempting to apply per-waypoint scaling after the fact creates invalid trajectories.
 
 **Key Takeaways:**
 1. ✅ TOTG works correctly for its intended use case (uniform scaling)

@@ -207,8 +207,8 @@ if ((start_direction - end_direction).norm() < 0.000001 ||
 | **Ruckig smoothing** | ✅ Has | ✅ **Has** | N/A | N/A |
 | **Torque limits** | ✅ Has (2023) | ❌ **Missing** | 🔴 HIGH | 🔴 HIGH |
 | **Minimum limit reduction** | ✅ Has (2021) | ⚠️ Unknown | 🟡 MEDIUM | 🟢 LOW |
-| **Strict limit validation** | ✅ Has (PR #1794) | ⚠️ Lenient | 🟡 MEDIUM | 🟢 LOW |
-| **Configurable density** | ✅ Has (PR #2185) | ✅ **Has** | N/A | N/A |
+| **Strict limit validation** | ✅ Has (PR [#1794](https://github.com/moveit/moveit2/issues/1794)) | ⚠️ Lenient | 🟡 MEDIUM | 🟢 LOW |
+| **Configurable density** | ✅ Has (PR [#2185](https://github.com/moveit/moveit/issues/2185)) | ✅ **Has** | N/A | N/A |
 | **Polymorphic design** | ✅ Has (2022) | ✅ **Has** | N/A | N/A |
 | **Multiple overloads** | ✅ Has | ✅ **Equivalent** | N/A | N/A |
 | **Antiparallel detection** | ✅ Has | ⚠️ **Partial** | 🟢 LOW | 🟢 LOW |
@@ -354,7 +354,7 @@ if (velocity_limits.rows() != acceleration_limits.rows())
 These items were discovered during the second-pass code review and are not
 covered by the sections above. Full context in `REVIEW_UPDATE_2026-05.md`.
 
-### 9a. Exposure to moveit2#3565 — huge accelerations from tiny `time_step`
+### 9a. Exposure to [moveit2#3565](https://github.com/moveit/moveit2/issues/3565) — huge accelerations from tiny `time_step`
 
 **Severity:** 🟡 medium — rare, but produces accelerations many orders of
 magnitude over the configured limits when it fires.
@@ -444,7 +444,7 @@ actual consequence (verified in `REVIEW_UPDATE_2026-05.md` §6) is that
 `CircularPathSegment` produces `center = NaN`, `x = NaN`, and `getConfig`
 returns NaN for any input, and the surrounding `Path::Path` code silently
 swallows that NaN. The `acos` clamp only prevents one NaN source; the geometry
-itself is broken. The dummy-joint workaround for Issue #27 is what currently
+itself is broken. The dummy-joint workaround for Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) is what currently
 keeps this from manifesting in production.
 
 The proposed `start_dot_end < -0.999999` early-exit is therefore a precondition

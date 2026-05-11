@@ -14,13 +14,13 @@ the older documents. Source-line references here use the **current** layout:
 
 Verified May 2026. **No commits to `time_optimal_trajectory_generation.{cpp,hpp}` on `moveit/moveit2:main` since the original analysis was written.** The most recent commits touching those files are:
 
-- `932c192` (Jan 9, 2025) — Add const specifier to moveit_core (#3202)
+- `932c192` (Jan 9, 2025) — Add const specifier to moveit_core ([#3202](https://github.com/moveit/moveit2/issues/3202))
 - `9766451` (Nov 29, 2024) — Header renamed `.h` → `.hpp`
 
 One **new TOTG-relevant issue** has been filed since the analysis was written:
 
-- **moveit2#3565** (opened Sept 2, 2025) — *TOTG paths can contain extremely high accelerations.* Acceleration values of ~10¹⁵ m/s² have been observed. The root cause is division by a near-machine-epsilon `time_step` in the per-waypoint acceleration computation. **Tesseract is exposed to this**; see finding §3 below.
-- moveit2#3694 (opened Feb 2026) — vibration during deceleration. Reporter has not isolated it to TOTG; likely jerk/config related. Tracking only.
+- **[moveit2#3565](https://github.com/moveit/moveit2/issues/3565)** (opened Sept 2, 2025) — *TOTG paths can contain extremely high accelerations.* Acceleration values of ~10¹⁵ m/s² have been observed. The root cause is division by a near-machine-epsilon `time_step` in the per-waypoint acceleration computation. **Tesseract is exposed to this**; see finding §3 below.
+- [moveit2#3694](https://github.com/moveit/moveit2/issues/3694) (opened Feb 2026) — vibration during deceleration. Reporter has not isolated it to TOTG; likely jerk/config related. Tracking only.
 
 ---
 
@@ -55,7 +55,7 @@ Tesseract uses `trajectory_.back()` (class member) in the else branch — exactl
 
 ---
 
-## 3. New finding — Tesseract is exposed to moveit2#3565 (huge accelerations)
+## 3. New finding — Tesseract is exposed to [moveit2#3565](https://github.com/moveit/moveit2/issues/3565) (huge accelerations)
 
 Not covered in the prior analysis.
 
@@ -82,7 +82,7 @@ The `1e-8` floor in `assignData` lines 960-961 / 972-973 only enforces monotonic
 
 **Symptom:** `getAcceleration` returns values orders of magnitude over the configured limits at affected waypoints.
 
-**Severity:** 🟡 medium. Rare in practice (the same kind of trajectory shapes that trigger #3565 on MoveIt2), but should be on the known-limitations list.
+**Severity:** 🟡 medium. Rare in practice (the same kind of trajectory shapes that trigger [#3565](https://github.com/moveit/moveit2/issues/3565) on MoveIt2), but should be on the known-limitations list.
 
 **Mitigation options** (not implementing yet, for later discussion):
 - Add a sensible floor on `time_step` in `getAcceleration` (e.g. `max(time_step, 1e-6)`) — quick but lossy.
@@ -197,18 +197,18 @@ Confirmed against current source:
 |---|---|
 | `EPS = 0.000001` | line 60 |
 | Single-waypoint short-circuit | lines 144-154 |
-| Dummy-joint workaround for Issue #27 | lines 157-173 |
-| Scaling factors applied to limits (Issue #118) | lines 168-173 |
+| Dummy-joint workaround for Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) | lines 157-173 |
+| Scaling factors applied to limits (Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118)) | lines 168-173 |
 | Limit-mismatch is logged, not return-false | lines 106-109 |
-| `acos(std::max(-1.0, …))` (MoveIt PR #1861) | line 254 |
-| Switching-point dedup via EPS (MoveIt #1665) | lines 676-680 |
+| `acos(std::max(-1.0, …))` (MoveIt PR [#1861](https://github.com/moveit/moveit/issues/1861)) | line 254 |
+| Switching-point dedup via EPS (MoveIt [#1665](https://github.com/moveit/moveit/issues/1665)) | lines 676-680 |
 | `getMinMaxPathAcceleration` zero-tangent guard | line 854 |
 | Equal-slope guard in `integrateBackward` | lines 815-821 |
 | `almostEqualRelativeAndAbs` in `integrateBackward` | lines 781, 786, 825-828 |
 | `TrajectoryStep` NaN asserts (header) | header lines 179-180 |
 | Endpoint zero velocity/acceleration | lines 458, 474 |
 | Torque-limits NOT implemented | (whole-file search) |
-| Issue #164 per-state scaling is by design | architectural |
+| Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) per-state scaling is by design | architectural |
 
 ## 9. Updated gap list
 
@@ -216,8 +216,8 @@ Reorganized priorities given the new findings:
 
 | Item | Severity | Effort | Notes |
 |---|---|---|---|
-| Antiparallel early-exit (incl. dot < -0.999999) | 🔴 high | 🟢 low | Precondition for removing the dummy-joint workaround; resolves Issue #27 |
-| `getAcceleration` exposure to moveit2#3565 | 🟡 medium | 🟡 medium | Document at minimum; fix is non-trivial |
+| Antiparallel early-exit (incl. dot < -0.999999) | 🔴 high | 🟢 low | Precondition for removing the dummy-joint workaround; resolves Issue [#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27) |
+| `getAcceleration` exposure to [moveit2#3565](https://github.com/moveit/moveit2/issues/3565) | 🟡 medium | 🟡 medium | Document at minimum; fix is non-trivial |
 | `getTime` div-by-zero in coast regions | 🟡 medium | 🟢 low | Linear fallback when `a≈0` |
 | Strict limit validation (return false on mismatch) | 🟡 medium | 🟢 low | Already covered |
 | Inconsistent `!= 0.0` in `getAccelerationMaxPathVelocity` | 🟢 low | 🟢 low | Consistency fix |
@@ -230,7 +230,7 @@ Reorganized priorities given the new findings:
 
 1. Claimed MoveIt2 has a bug at line 759 that Tesseract fixed — both projects have the same code, and it isn't a bug (§2).
 2. Framed antiparallel handling as "protected by `acos` clamp" — the geometry still produces NaN that propagates silently (§6).
-3. Missed Issue #3565 exposure (§3).
+3. Missed Issue [#3565](https://github.com/moveit/moveit2/issues/3565) exposure (§3).
 4. Missed `getTime` div-by-zero in coast regions (§4).
 5. Missed the inconsistent zero-detection across the two `getMin*` functions (§5).
 6. Stale file paths and namespaces throughout (project was restructured in the recent rebased commits).

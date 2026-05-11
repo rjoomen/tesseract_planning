@@ -1,4 +1,4 @@
-# Issue #118 Analysis: Unused Velocity/Acceleration Scaling Factors
+# Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) Analysis: Unused Velocity/Acceleration Scaling Factors
 
 **Issue:** [tesseract-robotics/tesseract_planning#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118)
 **Opened:** September 22, 2021
@@ -194,14 +194,14 @@ profile->max_velocity_scaling_factor = 0.0;  // Should throw
 
 ---
 
-## Related to Issue #164
+## Related to Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164)
 
-**Connection:** Issue #118 is about **trajectory-wide** scaling (which DOES work), while Issue #164 is about **per-waypoint** scaling (which doesn't work by design).
+**Connection:** Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) is about **trajectory-wide** scaling (which DOES work), while Issue [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) is about **per-waypoint** scaling (which doesn't work by design).
 
 | Feature | Issue | Status | Reason |
 |---------|-------|--------|--------|
-| **Uniform trajectory scaling** | #118 | ✅ FIXED | Implemented at lines 168-171 |
-| **Per-waypoint scaling** | #164 | ⚠️ BY DESIGN | TOTG algorithm limitation |
+| **Uniform trajectory scaling** | [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) | ✅ FIXED | Implemented at lines 168-171 |
+| **Per-waypoint scaling** | [#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164) | ⚠️ BY DESIGN | TOTG algorithm limitation |
 
 ---
 
@@ -210,7 +210,7 @@ profile->max_velocity_scaling_factor = 0.0;  // Should throw
 ### For Tesseract Team
 
 1. **✅ VERIFY FIX** - Run tests to confirm scaling factors work correctly
-2. **✅ CLOSE ISSUE** - If tests pass, close issue #118 as fixed
+2. **✅ CLOSE ISSUE** - If tests pass, close issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) as fixed
 3. **✅ ADD TESTS** - Add unit tests for scaling factors to prevent regression
 4. **✅ DOCUMENT** - Add examples of using scaling factors in documentation
 
@@ -218,7 +218,7 @@ profile->max_velocity_scaling_factor = 0.0;  // Should throw
 
 1. **✅ CAN USE** - Scaling factors should work correctly in current code
 2. **⚠️ VERIFY** - Test your specific use case if relying on scaling
-3. **⚠️ REPORT** - If scaling doesn't work, reopen or comment on issue #118
+3. **⚠️ REPORT** - If scaling doesn't work, reopen or comment on issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118)
 
 ---
 
@@ -255,7 +255,7 @@ bool success = totg.compute(trajectory, env, profiles);
 ## Summary
 
 ### Current Status
-**Issue #118 APPEARS TO BE FIXED** in the current codebase but the GitHub issue remains open.
+**Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) APPEARS TO BE FIXED** in the current codebase but the GitHub issue remains open.
 
 ### Evidence
 - ✅ Scaling factors ARE being applied to limits (lines 168, 171)
@@ -265,7 +265,7 @@ bool success = totg.compute(trajectory, env, profiles);
 
 ### Action Needed
 1. **Test** - Verify scaling factors work correctly
-2. **Close** - If tests pass, close issue #118 on GitHub
+2. **Close** - If tests pass, close issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) on GitHub
 3. **Document** - Add examples and tests
 
 ### Priority
@@ -277,11 +277,11 @@ bool success = totg.compute(trajectory, env, profiles);
 
 | Issue | Type | Status | Fix Needed? |
 |-------|------|--------|-------------|
-| **#27** | Bug | Workaround | ✅ Yes (antiparallel) |
-| **#118** | Bug | **APPEARS FIXED** | ⚠️ Verify & close |
-| **#164** | Limitation | By design | ❌ No (document) |
+| **[#27](https://github.com/tesseract-robotics/tesseract_planning/issues/27)** | Bug | Workaround | ✅ Yes (antiparallel) |
+| **[#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118)** | Bug | **APPEARS FIXED** | ⚠️ Verify & close |
+| **[#164](https://github.com/tesseract-robotics/tesseract_planning/issues/164)** | Limitation | By design | ❌ No (document) |
 
-**Issue #118 stands out** as potentially already fixed but not officially closed.
+**Issue [#118](https://github.com/tesseract-robotics/tesseract_planning/issues/118) stands out** as potentially already fixed but not officially closed.
 
 ---
 
