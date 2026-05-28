@@ -2,8 +2,8 @@
 Changelog for package tesseract_planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.35.0 (2026-05-28)
+-------------------
 * Update descartes tag
 * Export task_composer_planning_factories anchor
 * Update conda build (`#746 <https://github.com/tesseract-robotics/tesseract_planning/issues/746>`_)
