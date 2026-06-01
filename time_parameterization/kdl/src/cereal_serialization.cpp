@@ -1,0 +1,4 @@
+#include <tesseract/time_parameterization/kdl/cereal_serialization.h>
+#include <tesseract/time_parameterization/kdl/cereal_serialization_impl.hpp>
+
+CEREAL_REGISTER_DYNAMIC_INIT(tesseract_time_parameterization_kdl_cereal)

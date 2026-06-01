@@ -3,6 +3,10 @@ find_package(ruckig REQUIRED)
 add_library(time_parameterization_ruckig src/ruckig_trajectory_smoothing.cpp
                                          src/ruckig_trajectory_smoothing_profiles.cpp)
 add_library(tesseract::time_parameterization_ruckig ALIAS time_parameterization_ruckig)
+if(NOT WIN32)
+  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+  target_sources(time_parameterization_ruckig PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(time_parameterization_ruckig PROPERTIES OUTPUT_NAME tesseract_time_parameterization_ruckig)
 target_link_libraries(time_parameterization_ruckig PUBLIC tesseract::time_parameterization ruckig::ruckig
                                                           cereal::cereal)

@@ -88,6 +88,12 @@ void serialize(Archive& ar, UpsampleTrajectoryProfile& obj)
 
 }  // namespace tesseract::task_composer
 
+// On Windows the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#ifdef _WIN32
 #include <tesseract/task_composer/planning/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_task_composer_planning_cereal)
+#endif
 
 #endif  // TESSERACT_TASK_COMPOSER_PLANNING_CEREAL_SERIALIZATION_H

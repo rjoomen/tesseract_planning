@@ -1,6 +1,10 @@
 add_library(time_parameterization_isp src/iterative_spline_parameterization.cpp
                                       src/iterative_spline_parameterization_profiles.cpp)
 add_library(tesseract::time_parameterization_isp ALIAS time_parameterization_isp)
+if(NOT WIN32)
+  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+  target_sources(time_parameterization_isp PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(time_parameterization_isp PROPERTIES OUTPUT_NAME tesseract_time_parameterization_isp)
 target_link_libraries(time_parameterization_isp PUBLIC tesseract::time_parameterization cereal::cereal)
 target_include_directories(time_parameterization_isp PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

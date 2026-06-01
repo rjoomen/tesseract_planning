@@ -124,6 +124,10 @@ endif()
 
 add_library(task_composer_planning_nodes ${LIB_SOURCE_FILES})
 add_library(tesseract::task_composer_planning_nodes ALIAS task_composer_planning_nodes)
+if(NOT WIN32)
+  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+  target_sources(task_composer_planning_nodes PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(task_composer_planning_nodes PROPERTIES OUTPUT_NAME tesseract_task_composer_planning_nodes)
 target_link_libraries(task_composer_planning_nodes PUBLIC ${LIB_SOURCE_LINK_LIBRARIES})
 target_compile_options(task_composer_planning_nodes PRIVATE ${TESSERACT_COMPILE_OPTIONS_PRIVATE})

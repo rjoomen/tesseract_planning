@@ -167,6 +167,12 @@ void serialize(Archive& ar, OMPLRealVectorMoveProfile& obj)
 }
 }  // namespace tesseract::motion_planners
 
+// On Windows the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#ifdef _WIN32
 #include <tesseract/motion_planners/ompl/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_motion_planners_ompl_cereal)
+#endif
 
 #endif  // TESSERACT_MOTION_PLANNERS_OMPL_CEREAL_SERIALIZATION_H

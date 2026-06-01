@@ -156,6 +156,12 @@ void serialize(Archive& ar, TrajOptIfoptOSQPSolverProfile& obj)
 
 }  // namespace tesseract::motion_planners
 
+// On Windows the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#ifdef _WIN32
 #include <tesseract/motion_planners/trajopt_ifopt/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_motion_planners_trajopt_ifopt_cereal)
+#endif
 
 #endif  // TESSERACT_MOTION_PLANNERS_TRAJOPT_IFOPT_CEREAL_SERIALIZATION_H

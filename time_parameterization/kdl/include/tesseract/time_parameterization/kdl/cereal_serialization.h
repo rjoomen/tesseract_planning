@@ -24,6 +24,12 @@ void serialize(Archive& ar, ConstantTCPSpeedParameterizationCompositeProfile& ob
 
 }  // namespace tesseract::time_parameterization
 
+// On Windows the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#ifdef _WIN32
 #include <tesseract/time_parameterization/kdl/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_time_parameterization_kdl_cereal)
+#endif
 
 #endif  // TESSERACT_TIME_PARAMETERIZATION_CONSTANT_TCP_SPEED_PARAMETERIZATION_CEREAL_SERIALIZATION_H

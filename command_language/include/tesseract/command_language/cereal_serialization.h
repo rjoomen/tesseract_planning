@@ -223,6 +223,12 @@ void serialize(Archive& ar, WaitInstruction& obj)
 
 }  // namespace tesseract::command_language
 
+// On Windows the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#ifdef _WIN32
 #include <tesseract/command_language/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_command_language_cereal)
+#endif
 
 #endif  // TESSERACT_COMMAND_LANGUAGE_CEREAL_SERIALIZATION_H
