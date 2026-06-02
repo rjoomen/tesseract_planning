@@ -4,6 +4,10 @@ set -e
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     TCMALLOC_LIB_PATH="$PREFIX/lib/libtcmalloc_minimal.dylib"
+    # conda's clang adds -fvisibility-inlines-hidden, hiding Cereal's visibility("default")
+    # registration singleton; with Mach-O's two-level namespace each dylib gets its own registry
+    # and consumers throw "unregistered polymorphic type". Strip it so the registry is shared.
+    export CXXFLAGS="${CXXFLAGS//-fvisibility-inlines-hidden/}"
 else
     TCMALLOC_LIB_PATH="$PREFIX/lib/libtcmalloc_minimal.so"
 fi
