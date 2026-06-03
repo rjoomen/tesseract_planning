@@ -12,8 +12,8 @@ add_library(
   src/profile/trajopt_ifopt_default_composite_profile.cpp
   src/profile/trajopt_ifopt_osqp_solver_profile.cpp)
 add_library(tesseract::motion_planners_trajopt_ifopt ALIAS motion_planners_trajopt_ifopt)
-if(NOT WIN32)
-  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
   target_sources(motion_planners_trajopt_ifopt PRIVATE src/cereal_serialization.cpp)
 endif()
 set_target_properties(motion_planners_trajopt_ifopt PROPERTIES OUTPUT_NAME tesseract_motion_planners_trajopt_ifopt)

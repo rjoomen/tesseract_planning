@@ -98,9 +98,9 @@ void serialize(Archive& ar, SimplePlannerLVSNoIKMoveProfile& obj)
 }
 }  // namespace tesseract::motion_planners
 
-// On Windows the cereal polymorphic-type registration must be in the header,
+// On Windows and macOS the cereal polymorphic-type registration must be in the header,
 // for other platforms registration is in the cpp.
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__APPLE__)
 #include <tesseract/motion_planners/simple/cereal_serialization_impl.hpp>
 #else
 CEREAL_FORCE_DYNAMIC_INIT(tesseract_motion_planners_simple_cereal)

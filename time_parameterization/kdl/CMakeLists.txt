@@ -2,8 +2,8 @@ find_package(tesseract REQUIRED COMPONENTS kinematics_kdl)
 add_library(time_parameterization_kdl src/constant_tcp_speed_parameterization.cpp
                                       src/constant_tcp_speed_parameterization_profiles.cpp)
 add_library(tesseract::time_parameterization_kdl ALIAS time_parameterization_kdl)
-if(NOT WIN32)
-  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
   target_sources(time_parameterization_kdl PRIVATE src/cereal_serialization.cpp)
 endif()
 set_target_properties(time_parameterization_kdl PROPERTIES OUTPUT_NAME tesseract_time_parameterization_kdl)

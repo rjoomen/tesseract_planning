@@ -11,8 +11,8 @@ add_library(
   src/profile/simple_planner_lvs_move_profile.cpp
   src/profile/simple_planner_profile.cpp)
 add_library(tesseract::motion_planners_simple ALIAS motion_planners_simple)
-if(NOT WIN32)
-  # Compile the cereal polymorphic-type registration. On Windows it is registered in the header instead.
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
   target_sources(motion_planners_simple PRIVATE src/cereal_serialization.cpp)
 endif()
 set_target_properties(motion_planners_simple PROPERTIES OUTPUT_NAME tesseract_motion_planners_simple)
