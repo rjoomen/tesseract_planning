@@ -21,6 +21,10 @@ add_library(
   src/task_composer_task.cpp
   src/yaml_utils.cpp)
 add_library(tesseract::task_composer ALIAS task_composer)
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
+  target_sources(task_composer PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(task_composer PROPERTIES OUTPUT_NAME tesseract_task_composer)
 
 target_link_libraries(

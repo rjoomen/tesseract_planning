@@ -20,6 +20,10 @@ set(OMPL_SRC
 message(AUTHOR_WARNING "OMPL INCLUDE DIRS: ${OMPL_INCLUDE_DIRS}")
 add_library(motion_planners_ompl ${OMPL_SRC})
 add_library(tesseract::motion_planners_ompl ALIAS motion_planners_ompl)
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
+  target_sources(motion_planners_ompl PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(motion_planners_ompl PROPERTIES OUTPUT_NAME tesseract_motion_planners_ompl)
 target_link_libraries(
   motion_planners_ompl

@@ -21,6 +21,10 @@ add_library(
   src/joint_waypoint.cpp
   src/utils.cpp)
 add_library(tesseract::command_language ALIAS command_language)
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
+  target_sources(command_language PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(command_language PROPERTIES OUTPUT_NAME tesseract_command_language)
 target_link_libraries(
   command_language

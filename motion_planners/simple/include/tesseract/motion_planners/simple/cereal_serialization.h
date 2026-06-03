@@ -13,6 +13,7 @@
 #include <tesseract/common/cereal_serialization.h>
 
 #include <cereal/cereal.hpp>
+#include <cereal/types/polymorphic.hpp>
 
 namespace tesseract::motion_planners
 {
@@ -97,6 +98,12 @@ void serialize(Archive& ar, SimplePlannerLVSNoIKMoveProfile& obj)
 }
 }  // namespace tesseract::motion_planners
 
+// On Windows and macOS the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#if defined(_WIN32) || defined(__APPLE__)
 #include <tesseract/motion_planners/simple/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_motion_planners_simple_cereal)
+#endif
 
 #endif  // TESSERACT_MOTION_PLANNERS_SIMPLE_CEREAL_SERIALIZATION_H

@@ -12,6 +12,10 @@ add_library(
   src/profile/descartes_default_move_profile.cpp
   src/profile/descartes_ladder_graph_solver_profile.cpp)
 add_library(tesseract::motion_planners_descartes ALIAS motion_planners_descartes)
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
+  target_sources(motion_planners_descartes PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(motion_planners_descartes PROPERTIES OUTPUT_NAME tesseract_motion_planners_descartes)
 target_link_libraries(
   motion_planners_descartes

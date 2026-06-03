@@ -25,6 +25,12 @@ void serialize(Archive& ar, TimeOptimalTrajectoryGenerationCompositeProfile& obj
 
 }  // namespace tesseract::time_parameterization
 
+// On Windows and macOS the cereal polymorphic-type registration must be in the header,
+// for other platforms registration is in the cpp.
+#if defined(_WIN32) || defined(__APPLE__)
 #include <tesseract/time_parameterization/totg/cereal_serialization_impl.hpp>
+#else
+CEREAL_FORCE_DYNAMIC_INIT(tesseract_time_parameterization_totg_cereal)
+#endif
 
 #endif  // TESSERACT_TIME_PARAMETERIZATION_TIME_OPTIMAL_TRAJECTORY_GENERATION_CEREAL_SERIALIZATION_H

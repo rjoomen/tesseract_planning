@@ -1,6 +1,10 @@
 add_library(time_parameterization_totg src/time_optimal_trajectory_generation.cpp
                                        src/time_optimal_trajectory_generation_profiles.cpp)
 add_library(tesseract::time_parameterization_totg ALIAS time_parameterization_totg)
+if(NOT WIN32 AND NOT APPLE)
+  # Compile the cereal polymorphic-type registration. On Windows and macOS it is registered in the header instead.
+  target_sources(time_parameterization_totg PRIVATE src/cereal_serialization.cpp)
+endif()
 set_target_properties(time_parameterization_totg PROPERTIES OUTPUT_NAME tesseract_time_parameterization_totg)
 target_link_libraries(time_parameterization_totg PUBLIC tesseract::time_parameterization cereal::cereal)
 target_include_directories(time_parameterization_totg PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
