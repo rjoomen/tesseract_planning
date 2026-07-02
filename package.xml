@@ -13,6 +13,7 @@
 
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
 
+  <build_depend>libtaskflow-cpp-dev</build_depend>
   <build_depend>eigen</build_depend>
   <build_export_depend>eigen</build_export_depend>
 
@@ -33,9 +34,6 @@
 
   <!-- Time parameterization -->
   <depend>ruckig</depend>
-
-  <!-- Task composer -->
-  <depend>taskflow</depend>
 
   <!-- Test dependencies -->
   <test_depend>gtest</test_depend>
