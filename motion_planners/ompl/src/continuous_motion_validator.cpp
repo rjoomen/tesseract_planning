@@ -87,14 +87,17 @@ bool ContinuousMotionValidator::checkMotion(const ompl::base::State* s1,
           state_space.interpolate(s1, s2, lastValid.second, lastValid.first);
 
         is_valid = false;
+        break;
       }
-      else if (!continuousCollisionCheck(start_interp, end_interp))
+
+      if (!continuousCollisionCheck(start_interp, end_interp))
       {
         lastValid.second = (i - 1) / static_cast<double>(n_steps);
         if (lastValid.first != nullptr)
           state_space.interpolate(s1, s2, lastValid.second, lastValid.first);
 
         is_valid = false;
+        break;
       }
     }
 
