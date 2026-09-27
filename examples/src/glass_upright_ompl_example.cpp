@@ -142,9 +142,10 @@ public:
     sco::BasicTrustRegionSQP opt(prob);
 
     opt.initialize(trajopt::trajToDblVec(prob->GetInitTraj()));
-    sco::OptStatus status = opt.optimize();
+    opt.optimize();
 
-    if (status != sco::OptStatus::OPT_CONVERGED)
+    // Accept a feasible result that ended on a limit or a spent QP failure budget
+    if (!sco::isUsable(opt.results()))
       return false;
 
     x = trajopt::getTraj(opt.x(), prob->GetVars()).transpose();

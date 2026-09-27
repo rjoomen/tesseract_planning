@@ -322,7 +322,8 @@ bool moveWaypointFromCollisionTrajopt(tesseract::command_language::WaypointPoly&
   opt.setParameters(pci.opt_info);
   opt.initialize(trajToDblVec(prob->GetInitTraj()));
   opt.optimize();
-  if (opt.results().status != sco::OptStatus::OPT_CONVERGED)
+  // Accept a feasible result that ended on a limit or a spent QP failure budget
+  if (!sco::isUsable(opt.results()))
   {
     TESSERACT_LOG_ERROR("MoveWaypointFromCollision did not converge");
 
@@ -348,6 +349,9 @@ bool moveWaypointFromCollisionTrajopt(tesseract::command_language::WaypointPoly&
 
     return false;
   }
+  if (opt.results().status != sco::OptStatus::OPT_CONVERGED)
+    TESSERACT_LOG_WARN("MoveWaypointFromCollision: accepting a feasible result that ended with {}",
+                       sco::toString(opt.results().status));
   Eigen::VectorXd results(start_pos.size());
   results = getTraj(opt.x(), prob->GetVars()).row(0);
   return tesseract::command_language::setJointPosition(waypoint, results);
