@@ -136,14 +136,19 @@ PlannerResponse TrajOptMotionPlanner::solve(const PlannerRequest& request) const
 
   // Optimize
   opt->optimize();
-  if (opt->results().status != sco::OptStatus::OPT_CONVERGED)
+  // Accept a feasible result that ended on a limit or a spent QP failure budget; say why it is not converged
+  const sco::OptResults& results = opt->results();
+  if (!sco::isUsable(results))
   {
     response.successful = false;
     response.message =
-        std::string(ERROR_FAILED_TO_FIND_VALID_SOLUTION).append(": ").append(sco::toString(opt->results().status));
+        std::string(ERROR_FAILED_TO_FIND_VALID_SOLUTION).append(": ").append(sco::toString(results.status));
   }
   else
   {
+    if (results.status != sco::OptStatus::OPT_CONVERGED)
+      TESSERACT_LOG_WARN("TrajOptMotionPlanner: accepting a feasible result that ended with {}",
+                         sco::toString(results.status));
     response.successful = true;
     response.message = SOLUTION_FOUND;
   }

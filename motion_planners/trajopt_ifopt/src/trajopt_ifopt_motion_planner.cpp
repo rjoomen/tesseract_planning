@@ -184,14 +184,17 @@ PlannerResponse TrajOptIfoptMotionPlanner::solve(const PlannerRequest& request) 
   solver->solve(nlp);
 
   // Check success
-  if (solver->getStatus() != trajopt_sqp::SQPStatus::kConverged)
+  // Accept a feasible result that ended on a limit or a spent QP failure budget; say why it is not converged
+  const trajopt_sqp::SQPStatus status = solver->getStatus();
+  if (!trajopt_sqp::isUsable(status, solver->getResults()))
   {
     response.successful = false;
-    response.message =
-        std::string(ERROR_FAILED_TO_FIND_VALID_SOLUTION).append(": ").append(toString(solver->getStatus()));
+    response.message = std::string(ERROR_FAILED_TO_FIND_VALID_SOLUTION).append(": ").append(toString(status));
   }
   else
   {
+    if (status != trajopt_sqp::SQPStatus::kConverged)
+      TESSERACT_LOG_WARN("TrajOptIfoptMotionPlanner: accepting a feasible result that ended with {}", toString(status));
     response.successful = true;
     response.message = SOLUTION_FOUND;
   }
