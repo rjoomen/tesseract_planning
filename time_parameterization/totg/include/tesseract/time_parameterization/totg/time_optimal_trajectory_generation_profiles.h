@@ -66,8 +66,10 @@ struct TimeOptimalTrajectoryGenerationCompositeProfile : public tesseract::commo
 
   /**
    * @brief At least one joint must change by greater than this amount for the point to be added.
-   * @details One number for all joints, so in a group that mixes prismatic and revolute joints it applies in metres
-   * and in radians alike. Default: 0.001
+   * @details A waypoint within this of the last one kept, in every joint, is removed from the program; at the end of
+   * the program the last waypoint of such a run is kept instead, unless another instruction lies between them. One
+   * number for all joints, so in a group that mixes
+   * prismatic and revolute joints it applies in metres and in radians alike. Default: 0.001
    */
   double min_angle_change{ 0.001 };
 
