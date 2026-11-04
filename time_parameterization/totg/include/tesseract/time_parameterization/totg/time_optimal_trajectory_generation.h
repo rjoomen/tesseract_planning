@@ -146,6 +146,8 @@ struct PathData
   double path_pos{ 0 };
   double path_vel{ 0 };
   double time{ 0 };
+  /** @brief The path acceleration, constant over the integration step that contains time */
+  double path_acc{ 0 };
 };
 
 /**
@@ -191,7 +193,10 @@ public:
   Eigen::VectorXd getPosition(const PathData& data) const;
   /** @brief Return the velocity vector for a given point in time */
   Eigen::VectorXd getVelocity(const PathData& data) const;
-  /** @brief Return the acceleration vector for a given point in time */
+  /**
+   * @brief Return the acceleration vector for a given point in time
+   * @details Reads path_pos, path_vel and path_acc only, as getPathData sets them
+   */
   Eigen::VectorXd getAcceleration(const PathData& data) const;
   /** @brief get the time given a position on the trajectory */
   double getTime(double pos) const;
@@ -218,6 +223,8 @@ private:
     double path_pos_{ 0 };
     double path_vel_{ 0 };
     double time_{ 0 };
+    /** @brief The path acceleration of the step that ends here */
+    double path_acc_{ 0 };
   };
 
   bool getNextSwitchingPoint(double path_pos,
