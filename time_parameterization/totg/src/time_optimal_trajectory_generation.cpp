@@ -400,7 +400,10 @@ private:
 Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation)
 {
   if (path.size() < 2)
+  {
+    cursor_ = path_segments_.begin();
     return;
+  }
   auto path_iterator1 = path.begin();
   auto path_iterator2 = path_iterator1;
   ++path_iterator2;
@@ -459,12 +462,14 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation)
     switching_points_.emplace_back(length_, true);
   }
   switching_points_.pop_back();
+  cursor_ = path_segments_.begin();
 }
 
 Path::Path(const Path& path) : length_(path.length_), mapping_(path.mapping_), switching_points_(path.switching_points_)
 {
   for (const std::unique_ptr<PathSegment>& path_segment : path.path_segments_)
     path_segments_.emplace_back(path_segment->clone());
+  cursor_ = path_segments_.begin();
 }
 
 double Path::getLength() const { return length_; }
@@ -473,7 +478,12 @@ const std::vector<double>& Path::getMapping() const { return mapping_; }
 
 PathSegment* Path::getPathSegment(double& s) const
 {
-  auto it = path_segments_.begin();
+  // Find the last segment that starts at or before s, resuming from the last one found. The start positions are running
+  // sums of lengths, so s >= position holds on a prefix of the segments for any s, NaN included, and this finds the
+  // segment a scan from the first one finds
+  auto it = cursor_;
+  while (it != path_segments_.begin() && !(s >= (*it)->position_))
+    --it;
   auto next = it;
   ++next;
   while (next != path_segments_.end() && s >= (*next)->position_)
@@ -481,6 +491,7 @@ PathSegment* Path::getPathSegment(double& s) const
     it = next;
     ++next;
   }
+  cursor_ = it;
   s -= (*it)->position_;
   return (*it).get();
 }
@@ -529,11 +540,13 @@ Trajectory::Trajectory(const Path& path,
   , max_velocity_(max_velocity)
   , max_acceleration_(max_acceleration)
   , joint_num_(max_velocity.size())
+  , trajectory_{ TrajectoryStep(0.0, 0.0) }
   , time_step_(time_step)
   , cached_time_(std::numeric_limits<double>::max())
+  // The integration never removes the first step
+  , cached_trajectory_segment_(trajectory_.begin())
+  , cached_path_pos_segment_(trajectory_.begin())
 {
-  trajectory_.emplace_back(0.0, 0.0);
-
   // A non-positive step never advances the integration
   if (!(time_step_ > 0.0))
   {
@@ -582,6 +595,22 @@ Trajectory::Trajectory(const Path& path,
       TESSERACT_LOG_ERROR("Trajectory duration is not finite, a moving joint likely has a zero velocity limit");
     }
   }
+}
+
+// Copies every member but the lookup cursors, which restart in the copy's own steps
+Trajectory::Trajectory(const Trajectory& other)
+  : path_(other.path_)
+  , max_velocity_(other.max_velocity_)
+  , max_acceleration_(other.max_acceleration_)
+  , joint_num_(other.joint_num_)
+  , valid_(other.valid_)
+  , trajectory_(other.trajectory_)
+  , end_trajectory_(other.end_trajectory_)
+  , time_step_(other.time_step_)
+  , cached_time_(std::numeric_limits<double>::max())
+  , cached_trajectory_segment_(trajectory_.begin())
+  , cached_path_pos_segment_(trajectory_.begin())
+{
 }
 
 // Returns true if end of path is reached.
@@ -1092,7 +1121,8 @@ std::list<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectoryS
     return last;
   }
 
-  if (time < cached_time_)
+  // Restart unless time went forward; written as a negation so a NaN time restarts too, and so does any time after one
+  if (!(time >= cached_time_))
   {
     cached_trajectory_segment_ = trajectory_.begin();
   }
@@ -1116,10 +1146,17 @@ std::list<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectoryS
   if (pos < 0)
     return trajectory_.begin();
 
-  for (auto it = trajectory_.begin(); it != trajectory_.end(); ++it)
+  // Find the first step past pos, resuming from the last one found unless pos went back. No step before that one is
+  // past the last pos, so a scan from the first step reaches it too, however the steps are ordered
+  auto it = (pos >= cached_path_pos_) ? cached_path_pos_segment_ : trajectory_.begin();
+  for (; it != trajectory_.end(); ++it)
   {
     if (pos < it->path_pos_)
+    {
+      cached_path_pos_ = pos;
+      cached_path_pos_segment_ = it;
       return it;
+    }
   }
 
   throw std::runtime_error("Failed to find trajectory segment, this should not happen");
