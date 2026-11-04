@@ -59,8 +59,9 @@ struct TimeOptimalTrajectoryGenerationCompositeProfile : public tesseract::commo
 
   /**
    * @brief The maximum deviation from a corner of the path where the corner is blended; must be greater than zero.
-   * @details One number for all joints, so in a group that mixes prismatic and revolute joints it applies in metres
-   * and in radians alike. Default: 0.1
+   * @details The distance in joint space, the Euclidean norm over the joints, from the corner waypoint to the blend; a
+   * blend also reaches no further than halfway along either adjacent segment. One number for all joints, so in a group
+   * that mixes prismatic and revolute joints it applies in metres and in radians alike. Default: 0.1
    */
   double path_tolerance{ 0.1 };
 
@@ -68,8 +69,8 @@ struct TimeOptimalTrajectoryGenerationCompositeProfile : public tesseract::commo
    * @brief At least one joint must change by greater than this amount for the point to be added.
    * @details A waypoint within this of the last one kept, in every joint, is removed from the program; at the end of
    * the program the last waypoint of such a run is kept instead, unless another instruction lies between them. One
-   * number for all joints, so in a group that mixes
-   * prismatic and revolute joints it applies in metres and in radians alike. Default: 0.001
+   * number for all joints, so in a group that mixes prismatic and revolute joints it applies in metres and in radians
+   * alike. Must be at least 1e-5. Default: 0.001
    */
   double min_angle_change{ 0.001 };
 
