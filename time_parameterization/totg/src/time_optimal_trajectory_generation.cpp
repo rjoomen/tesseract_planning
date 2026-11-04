@@ -984,7 +984,8 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
 
       if (getAccelerationMaxPathVelocity(after) < getVelocityMaxPathVelocity(after))
       {
-        if (after > next_discontinuity->first)
+        // Past the last discontinuity only the end of the path follows, which after cannot pass
+        if (next_discontinuity != switching_points.end() && after > next_discontinuity->first)
         {
           return false;
         }
@@ -997,8 +998,8 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
       }
       else
       {
-        if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory_.back().path_vel_, false) >
-            getVelocityMaxPathVelocityDeriv(trajectory_.back().path_pos_))
+        if (getMinMaxPhaseSlope(trajectory.back().path_pos_, trajectory.back().path_vel_, false) >
+            getVelocityMaxPathVelocityDeriv(trajectory.back().path_pos_))
         {
           return false;
         }
@@ -1055,6 +1056,15 @@ void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory,
       else
       {
         acceleration = getMinMaxPathAcceleration(path_pos, path_vel, false);
+      }
+
+      // At rest with no deceleration the position never changes and nothing else ends the loop
+      if (path_vel == 0 && acceleration == 0)
+      {
+        valid_ = false;
+        TESSERACT_LOG_ERROR("Error while integrating backward: zero path velocity and acceleration");
+        end_trajectory_ = trajectory;
+        return;
       }
 
       if (path_vel < 0.0)
