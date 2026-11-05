@@ -46,9 +46,9 @@ struct TimeOptimalTrajectoryGenerationCompositeProfile : public tesseract::commo
 
   /** @brief Indicate if overriding limits, otherwise manipulator limits will be used. */
   bool override_limits{ false };
-  /** @brief The min/max velocities for each joint */
+  /** @brief The min/max velocities for each joint, finite, with min <= 0 <= max */
   Eigen::MatrixX2d velocity_limits;
-  /** @brief The min/max acceleration for each joint */
+  /** @brief The min/max acceleration for each joint, finite, with min <= 0 <= max */
   Eigen::MatrixX2d acceleration_limits;
 
   /** @brief The max velocity scaling factor passed to the solver. Default: 1.0*/

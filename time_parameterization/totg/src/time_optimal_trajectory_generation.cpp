@@ -123,6 +123,13 @@ bool TimeOptimalTrajectoryGeneration::compute(tesseract::command_language::Compo
   if (!((acceleration_limits.col(0).array() <= 0.0).all() && (acceleration_limits.col(1).array() >= 0.0).all()))
     throw std::runtime_error("TimeOptimalTrajectoryGeneration, acceleration limits must have lower <= 0 <= upper!");
 
+  // The core compares curves derived from the limits, which an infinite limit leaves to rounding and NaN
+  if (!velocity_limits.allFinite())
+    throw std::runtime_error("TimeOptimalTrajectoryGeneration, velocity limits must be finite!");
+
+  if (!acceleration_limits.allFinite())
+    throw std::runtime_error("TimeOptimalTrajectoryGeneration, acceleration limits must be finite!");
+
   // The core takes one symmetric limit per joint, so each joint gets the tighter of its two sides
   const Eigen::VectorXd max_velocity =
       (-velocity_limits.col(0)).cwiseMin(velocity_limits.col(1)) * ci_profile->max_velocity_scaling_factor;
